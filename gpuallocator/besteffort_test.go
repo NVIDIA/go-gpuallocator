@@ -282,6 +282,49 @@ func TestBestEffortIterateGPUPartitions(t *testing.T) {
 	}
 }
 
+func TestBestEffort4xRTX8000GPUAllocOne(t *testing.T) {
+	devices := New4xRTX8000Node().Devices()
+	policy := NewBestEffortPolicy()
+	allocator := newAllocatorFrom(devices, policy)
+
+	tests := []AllocTest{
+		{1, []int{0}},
+		{1, []int{1}},
+		{1, []int{2}},
+		{1, []int{3}},
+		{1, []int{}},
+	}
+
+	RunAllocTests(t, allocator, tests)
+}
+
+func TestBestEffort4xRTX8000GPUAllocTwo(t *testing.T) {
+	devices := New4xRTX8000Node().Devices()
+	policy := NewBestEffortPolicy()
+	allocator := newAllocatorFrom(devices, policy)
+
+	tests := []AllocTest{
+		{2, []int{0, 3}},
+		{2, []int{1, 2}},
+		{1, []int{}},
+	}
+
+	RunAllocTests(t, allocator, tests)
+}
+
+func TestBestEffort4xRTX8000GPUAllocFour(t *testing.T) {
+	devices := New4xRTX8000Node().Devices()
+	policy := NewBestEffortPolicy()
+	allocator := newAllocatorFrom(devices, policy)
+
+	tests := []AllocTest{
+		{4, []int{0, 1, 2, 3}},
+		{1, []int{}},
+	}
+
+	RunAllocTests(t, allocator, tests)
+}
+
 func TestBestEffortDGX1PascalGPUAllocOne(t *testing.T) {
 	devices := NewDGX1PascalNode().Devices()
 	policy := NewBestEffortPolicy()

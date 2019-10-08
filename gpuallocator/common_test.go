@@ -135,6 +135,33 @@ func (n TestNode) Devices() []*Device {
 	return devices
 }
 
+func New4xRTX8000Node() TestNode {
+	node := TestNode{
+		NewTestGPU(0),
+		NewTestGPU(1),
+		NewTestGPU(2),
+		NewTestGPU(3),
+	}
+
+	// NVLinks
+	node.AddLink(0, 3, nvml.TwoNVLINKLinks)
+	node.AddLink(1, 2, nvml.TwoNVLINKLinks)
+	node.AddLink(2, 1, nvml.TwoNVLINKLinks)
+	node.AddLink(3, 0, nvml.TwoNVLINKLinks)
+
+	// P2PLinks
+	node.AddLink(0, 1, nvml.P2PLinkSameCPU)
+	node.AddLink(0, 2, nvml.P2PLinkCrossCPU)
+	node.AddLink(1, 0, nvml.P2PLinkSameCPU)
+	node.AddLink(1, 3, nvml.P2PLinkCrossCPU)
+	node.AddLink(2, 0, nvml.P2PLinkCrossCPU)
+	node.AddLink(2, 3, nvml.P2PLinkSameCPU)
+	node.AddLink(3, 1, nvml.P2PLinkCrossCPU)
+	node.AddLink(3, 2, nvml.P2PLinkSameCPU)
+
+	return node
+}
+
 func NewDGX1PascalNode() TestNode {
 	node := TestNode{
 		NewTestGPU(0),

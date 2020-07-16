@@ -4,6 +4,72 @@ package gpuallocator
 
 import "testing"
 
+func TestStaticDGX1VoltAllocate(t *testing.T) {
+	devices := NewDGX1VoltaNode().Devices()
+	policy := NewStaticDGX1Policy(GPUTypeVolta)
+
+	tests := []PolicyAllocTest{
+		{
+			"Must include with allocation size 1",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{4},
+			1,
+			[]int{4},
+		},
+		{
+			"Must include with allocation size 2",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{4},
+			2,
+			[]int{4, 7},
+		},
+		{
+			"Must include with allocation size 4",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{4},
+			4,
+			[]int{4, 5, 6, 7},
+		},
+		{
+			"Must include with unavailable device",
+			devices,
+			[]int{1, 2, 3, 4, 5, 6, 7},
+			[]int{0, 1, 2, 3},
+			4,
+			[]int{},
+		},
+		{
+			"Must include with devices not in valid set",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{0, 2, 4, 6},
+			4,
+			[]int{},
+		},
+		{
+			"Must include with full set specified",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{4, 5, 6, 7},
+			4,
+			[]int{4, 5, 6, 7},
+		},
+		{
+			"Must include with too many devices specified",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{1, 2, 3, 4, 5, 6},
+			4,
+			[]int{},
+		},
+	}
+
+	RunPolicyAllocTests(t, policy, tests)
+}
+
 func TestStaticDGX1PascalGPUAllocOne(t *testing.T) {
 	devices := NewDGX1PascalNode().Devices()
 	policy := NewStaticDGX1Policy(GPUTypePascal)

@@ -125,6 +125,21 @@ func (ds DeviceSet) Contains(device *Device) bool {
 	return ok
 }
 
+// ContainsAll checks if a list of devices is present in a DeviceSet.
+func (ds DeviceSet) ContainsAll(devices []*Device) bool {
+	if len(devices) > len(ds) {
+		return false
+	}
+
+	for _, d := range devices {
+		if !ds.Contains(d) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // SortedSlice etunrs returns a slice of devices,
 // sorted by device index from a DeviceSet.
 func (ds DeviceSet) SortedSlice() []*Device {

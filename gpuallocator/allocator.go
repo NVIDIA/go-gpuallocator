@@ -50,7 +50,7 @@ func NewAllocator(policy Policy) (*Allocator, error) {
 		return nil, fmt.Errorf("error initializing NVML: %v", err)
 	}
 
-	devices, err := newDevices()
+	devices, err := NewDevices()
 	if err != nil {
 		return nil, fmt.Errorf("error enumerating GPU devices: %v", err)
 	}

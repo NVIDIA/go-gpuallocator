@@ -95,8 +95,10 @@ func (d *Device) Details() string {
 }
 
 // NewDeviceSet creates a new DeviceSet.
-func NewDeviceSet() DeviceSet {
-	return make(DeviceSet)
+func NewDeviceSet(devices ...*Device) DeviceSet {
+	set := make(DeviceSet)
+	set.Insert(devices...)
+	return set
 }
 
 // Insert inserts a list of devices into a DeviceSet.

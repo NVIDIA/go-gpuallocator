@@ -74,6 +74,26 @@ func gpuSetContains(gpuSet []*Device, gpu *Device) bool {
 	return false
 }
 
+// Check to see if an entire subset of GPUs is contained in a GPU set.
+func gpuSetContainsAll(gpuSet []*Device, gpuSubset []*Device) bool {
+	for _, gpu := range gpuSubset {
+		if !gpuSetContains(gpuSet, gpu) {
+			return false
+		}
+	}
+	return true
+}
+
+// Check to see if 'gpuPartition' has at least one set containing all 'gpuSubset' devices and no padding.
+func gpuPartitionContainsSetWithAll(gpuPartition [][]*Device, gpuSubset []*Device) bool {
+	for _, gpuSet := range gpuPartition {
+		if gpuSetContainsAll(gpuSet, gpuSubset) && gpuSetCountPadding(gpuSet) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // Copy a GPU set and add padding to it.
 //
 // Pad the list of available GPUs on the node such that the list can be evenly

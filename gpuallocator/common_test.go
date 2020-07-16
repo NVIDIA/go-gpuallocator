@@ -71,7 +71,7 @@ func RunAllocTests(t *testing.T, allocator *Allocator, tests []AllocTest) {
 			sortGPUSet(result)
 
 			for _, device := range allocated {
-				if !gpuSetContains(result, device) {
+				if !NewDeviceSet(result...).Contains(device) {
 					t.Errorf("got %v, want %v", allocated, tc.result)
 					break
 				}
@@ -96,7 +96,7 @@ func RunPolicyAllocTests(t *testing.T, policy Policy, tests []PolicyAllocTest) {
 			sortGPUSet(result)
 
 			for _, device := range allocated {
-				if !gpuSetContains(result, device) {
+				if !NewDeviceSet(result...).Contains(device) {
 					t.Errorf("got %v, want %v", allocated, tc.result)
 					break
 				}

@@ -22,7 +22,8 @@ type AllocTest struct {
 type PolicyAllocTest struct {
 	description string
 	devices     []*Device
-	input       []int
+	available   []int
+	required    []int
 	size        int
 	result      []int
 }
@@ -83,10 +84,11 @@ func RunAllocTests(t *testing.T, allocator *Allocator, tests []AllocTest) {
 func RunPolicyAllocTests(t *testing.T, policy Policy, tests []PolicyAllocTest) {
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			input := GetDevicesFromIndices(tc.devices, tc.input)
+			available := GetDevicesFromIndices(tc.devices, tc.available)
+			required := GetDevicesFromIndices(tc.devices, tc.required)
 			result := GetDevicesFromIndices(tc.devices, tc.result)
 
-			allocated := policy.Allocate(input, tc.size)
+			allocated := policy.Allocate(available, required, tc.size)
 			if len(allocated) != len(tc.result) {
 				t.Errorf("got %v, want %v", allocated, tc.result)
 				return

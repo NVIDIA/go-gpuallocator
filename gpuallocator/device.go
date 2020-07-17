@@ -29,8 +29,8 @@ type P2PLink struct {
 // DeviceSet is used to hold and manipulate a set of unique GPU devices.
 type DeviceSet map[string]*Device
 
-// Create a list of all Devices with P2PLink information prepopulated.
-func newDevices() ([]*Device, error) {
+// Create a list of Devices from all available nvml.Devices.
+func NewDevices() ([]*Device, error) {
 	count, err := nvml.GetDeviceCount()
 	if err != nil {
 		return nil, fmt.Errorf("error calling nvml.GetDeviceCount: %v", err)
@@ -71,6 +71,29 @@ func newDevices() ([]*Device, error) {
 	return devices, nil
 }
 
+// Create a list of Devices from the specific set of GPU uuids passed in.
+func NewDevicesFrom(uuids []string) ([]*Device, error) {
+	devices, err := NewDevices()
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := []*Device{}
+	for _, uuid := range uuids {
+		for _, device := range devices {
+			if device.UUID == uuid {
+				filtered = append(filtered, device)
+				break
+			}
+		}
+		if len(filtered) == 0 || filtered[len(filtered)-1].UUID != uuid {
+			return nil, fmt.Errorf("no device with uuid: %v", uuid)
+		}
+	}
+
+	return filtered, nil
+}
+
 // String returns a compact representation of a Device as string of its index.
 func (d *Device) String() string {
 	return fmt.Sprintf("%v", d.Index)
@@ -95,8 +118,10 @@ func (d *Device) Details() string {
 }
 
 // NewDeviceSet creates a new DeviceSet.
-func NewDeviceSet() DeviceSet {
-	return make(DeviceSet)
+func NewDeviceSet(devices ...*Device) DeviceSet {
+	set := make(DeviceSet)
+	set.Insert(devices...)
+	return set
 }
 
 // Insert inserts a list of devices into a DeviceSet.
@@ -121,6 +146,21 @@ func (ds DeviceSet) Contains(device *Device) bool {
 
 	_, ok := ds[device.UUID]
 	return ok
+}
+
+// ContainsAll checks if a list of devices is present in a DeviceSet.
+func (ds DeviceSet) ContainsAll(devices []*Device) bool {
+	if len(devices) > len(ds) {
+		return false
+	}
+
+	for _, d := range devices {
+		if !ds.Contains(d) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // SortedSlice etunrs returns a slice of devices,

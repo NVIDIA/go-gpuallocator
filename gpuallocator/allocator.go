@@ -28,7 +28,7 @@ type Policy interface {
 	// then returns a subset of devices of length 'size'. If the policy is
 	// unable to allocate 'size' GPUs from the slice of input devices, it
 	// returns an empty slice.
-	Allocate(devices []*Device, size int) []*Device
+	Allocate(available []*Device, required []*Device, size int) []*Device
 }
 
 // NewSimpleAllocator creates a new Allocator using the Simple allocation
@@ -50,7 +50,7 @@ func NewAllocator(policy Policy) (*Allocator, error) {
 		return nil, fmt.Errorf("error initializing NVML: %v", err)
 	}
 
-	devices, err := newDevices()
+	devices, err := NewDevices()
 	if err != nil {
 		return nil, fmt.Errorf("error enumerating GPU devices: %v", err)
 	}
@@ -81,7 +81,7 @@ func newAllocatorFrom(devices []*Device, policy Policy) *Allocator {
 // Allocate a set of 'num' GPUs from the allocator.
 // If 'num' devices cannot be allocated, return an empty slice.
 func (a *Allocator) Allocate(num int) []*Device {
-	devices := a.policy.Allocate(a.remaining.SortedSlice(), num)
+	devices := a.policy.Allocate(a.remaining.SortedSlice(), nil, num)
 
 	err := a.AllocateSpecific(devices...)
 	if err != nil {

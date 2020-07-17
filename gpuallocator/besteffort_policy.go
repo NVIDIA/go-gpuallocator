@@ -15,8 +15,10 @@ func NewBestEffortPolicy() Policy {
 	return &bestEffortPolicy{}
 }
 
-//  Allocate finds the best set of 'size' GPUs to allocate from a list of GPU
-//  devices and returns them.
+//  Allocate finds the best set of 'size' GPUs to allocate from a list of
+//  available GPU devices and returns them. The algorithm is designed to
+//  ensure that a list of 'required' GPU devices is present in the final
+//  allocation.
 //
 //  This algorithm considers all possible sets of GPUs of size 'size'.
 //  However, it does not settle for the greedy solution of looking for the
@@ -29,19 +31,28 @@ func NewBestEffortPolicy() Policy {
 //  Such a solution is necessary in the general case because of the
 //  non-hierarchical nature of the various links that influence the score
 //  calculated for each pair of GPUs.
-func (p *bestEffortPolicy) Allocate(devices []*Device, size int) []*Device {
+func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, size int) []*Device {
 	if size <= 0 {
 		return []*Device{}
 	}
 
-	if len(devices) < size {
+	if len(available) < size {
+		return []*Device{}
+	}
+
+	if len(required) > size {
 		return []*Device{}
 	}
 
 	// Find the highest scoring GPU partition with sets of of size 'size'.
+	// Don't consider partitions that don't have at least one set that contains
+	// all of the GPUs 'required' by the allocation.
 	bestPartition := [][]*Device(nil)
 	bestScore := 0
-	iterateGPUPartitions(devices, size, func(candidate [][]*Device) {
+	iterateGPUPartitions(available, size, func(candidate [][]*Device) {
+		if !gpuPartitionContainsSetWithAll(candidate, required) {
+			return
+		}
 		score := calculateGPUPartitionScore(candidate)
 		if score > bestScore || bestPartition == nil {
 			bestPartition = candidate
@@ -49,13 +60,26 @@ func (p *bestEffortPolicy) Allocate(devices []*Device, size int) []*Device {
 		}
 	})
 
+	// Filter the 'bestPartition' to only include sets containing all of the
+	// 'required' devices (which may be nil so all sets will be valid).
+	filteredBestPartition := [][]*Device{}
+	for _, set := range bestPartition {
+		if gpuSetContainsAll(set, required) {
+			filteredBestPartition = append(filteredBestPartition, set)
+		}
+	}
+
+	if len(filteredBestPartition) == 0 {
+		return []*Device{}
+	}
+
 	// Find the highest scoring GPU set in the highest scoring GPU partition.
-	bestSet := bestPartition[0]
+	bestSet := filteredBestPartition[0]
 	bestScore = calculateGPUSetScore(bestSet)
-	for i := 1; i < len(bestPartition); i++ {
-		score := calculateGPUSetScore(bestPartition[i])
+	for i := 1; i < len(filteredBestPartition); i++ {
+		score := calculateGPUSetScore(filteredBestPartition[i])
 		if score > bestScore {
-			bestSet = bestPartition[i]
+			bestSet = filteredBestPartition[i]
 			bestScore = score
 		}
 	}
@@ -68,6 +92,26 @@ func (p *bestEffortPolicy) Allocate(devices []*Device, size int) []*Device {
 func gpuSetContains(gpuSet []*Device, gpu *Device) bool {
 	for i := range gpuSet {
 		if gpuSet[i] == gpu {
+			return true
+		}
+	}
+	return false
+}
+
+// Check to see if an entire subset of GPUs is contained in a GPU set.
+func gpuSetContainsAll(gpuSet []*Device, gpuSubset []*Device) bool {
+	for _, gpu := range gpuSubset {
+		if !gpuSetContains(gpuSet, gpu) {
+			return false
+		}
+	}
+	return true
+}
+
+// Check to see if 'gpuPartition' has at least one set containing all 'gpuSubset' devices and no padding.
+func gpuPartitionContainsSetWithAll(gpuPartition [][]*Device, gpuSubset []*Device) bool {
+	for _, gpuSet := range gpuPartition {
+		if gpuSetContainsAll(gpuSet, gpuSubset) && gpuSetCountPadding(gpuSet) == 0 {
 			return true
 		}
 	}

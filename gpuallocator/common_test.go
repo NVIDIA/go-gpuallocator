@@ -3,6 +3,7 @@
 package gpuallocator
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 
@@ -111,9 +112,9 @@ func NewTestGPU(index int) *TestGPU {
 	return &TestGPU{
 		Index: index,
 		Device: &nvml.Device{
-			UUID: "GPU-" + string(index),
+			UUID: fmt.Sprintf("GPU-%d", index),
 			PCI: nvml.PCIInfo{
-				BusID: string(index),
+				BusID: fmt.Sprintf("GPU-%d", index),
 			},
 		},
 		Links: make(map[int][]P2PLink),

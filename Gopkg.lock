@@ -3,15 +3,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9892510a016d744d637f8e34319071bebe22980b05cf614c39419624581eae77"
   name = "github.com/NVIDIA/gpu-monitoring-tools"
   packages = ["bindings/go/nvml"]
-  pruneopts = "UT"
-  revision = "938956d36f0d8ebe92103b150ab82a287f29fd10"
+  revision = "d08ea3cdcce49498e9f7bab532df4d75351fdc0e"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"]
+  inputs-digest = "dfd0c7497372fd44428e959e8e7f5d961b988093eed060a37c4682e287c9e825"
   solver-name = "gps-cdcl"
   solver-version = 1

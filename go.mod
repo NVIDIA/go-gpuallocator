@@ -1,16 +1,8 @@
-module github.com/NVIDIA/gpu-monitoring-tools
+module github.com/nvidia/go-gpuallocator
 
-go 1.14
+go 1.15
 
-require (
-	github.com/gorilla/mux v1.7.4
-	github.com/sirupsen/logrus v1.4.2
-	github.com/stretchr/testify v1.5.1
-	github.com/urfave/cli/v2 v2.2.0
-	golang.org/x/sys v0.0.0-20200413165638-669c56c373c4 // indirect
-	google.golang.org/grpc v1.28.1
-	k8s.io/kubernetes v1.18.2
-)
+require github.com/NVIDIA/gpu-monitoring-tools v0.0.0-20201109160820-d08ea3cdcce4
 
 replace (
 	k8s.io/api => k8s.io/api v0.18.2

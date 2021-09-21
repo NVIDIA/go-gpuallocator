@@ -7,16 +7,19 @@ import (
 	"sync"
 )
 
-// Ensure, that DeviceMock does implement Device.
+// Ensure, that DeviceLiteMock does implement DeviceLite.
 // If this is not the case, regenerate this file with moq.
-var _ Device = &DeviceMock{}
+var _ DeviceLite = &DeviceLiteMock{}
 
-// DeviceMock is a mock implementation of Device.
+// DeviceLiteMock is a mock implementation of DeviceLite.
 //
-// 	func TestSomethingThatUsesDevice(t *testing.T) {
+// 	func TestSomethingThatUsesDeviceLite(t *testing.T) {
 //
-// 		// make and configure a mocked Device
-// 		mockedDevice := &DeviceMock{
+// 		// make and configure a mocked DeviceLite
+// 		mockedDeviceLite := &DeviceLiteMock{
+// 			CPUAffinityFunc: func() int64 {
+// 				panic("mock out the CPUAffinity method")
+// 			},
 // 			GetAttributesFunc: func() (DeviceAttributes, Return) {
 // 				panic("mock out the GetAttributes method")
 // 			},
@@ -34,6 +37,9 @@ var _ Device = &DeviceMock{}
 // 			},
 // 			GetMigDeviceHandleByIndexFunc: func(n int) (Device, Return) {
 // 				panic("mock out the GetMigDeviceHandleByIndex method")
+// 			},
+// 			GetMigDevicesFunc: func() ([]DeviceLite, Return) {
+// 				panic("mock out the GetMigDevices method")
 // 			},
 // 			GetMigModeFunc: func() (int, int, Return) {
 // 				panic("mock out the GetMigMode method")
@@ -56,16 +62,25 @@ var _ Device = &DeviceMock{}
 // 			GetUUIDFunc: func() (string, Return) {
 // 				panic("mock out the GetUUID method")
 // 			},
+// 			IsMigEnabledFunc: func() (bool, Return) {
+// 				panic("mock out the IsMigEnabled method")
+// 			},
+// 			PathFunc: func() string {
+// 				panic("mock out the Path method")
+// 			},
 // 			RegisterEventsFunc: func(v uint64, eventSet EventSet) Return {
 // 				panic("mock out the RegisterEvents method")
 // 			},
 // 		}
 //
-// 		// use mockedDevice in code that requires Device
+// 		// use mockedDeviceLite in code that requires DeviceLite
 // 		// and then make assertions.
 //
 // 	}
-type DeviceMock struct {
+type DeviceLiteMock struct {
+	// CPUAffinityFunc mocks the CPUAffinity method.
+	CPUAffinityFunc func() int64
+
 	// GetAttributesFunc mocks the GetAttributes method.
 	GetAttributesFunc func() (DeviceAttributes, Return)
 
@@ -83,6 +98,9 @@ type DeviceMock struct {
 
 	// GetMigDeviceHandleByIndexFunc mocks the GetMigDeviceHandleByIndex method.
 	GetMigDeviceHandleByIndexFunc func(n int) (Device, Return)
+
+	// GetMigDevicesFunc mocks the GetMigDevices method.
+	GetMigDevicesFunc func() ([]DeviceLite, Return)
 
 	// GetMigModeFunc mocks the GetMigMode method.
 	GetMigModeFunc func() (int, int, Return)
@@ -105,11 +123,20 @@ type DeviceMock struct {
 	// GetUUIDFunc mocks the GetUUID method.
 	GetUUIDFunc func() (string, Return)
 
+	// IsMigEnabledFunc mocks the IsMigEnabled method.
+	IsMigEnabledFunc func() (bool, Return)
+
+	// PathFunc mocks the Path method.
+	PathFunc func() string
+
 	// RegisterEventsFunc mocks the RegisterEvents method.
 	RegisterEventsFunc func(v uint64, eventSet EventSet) Return
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// CPUAffinity holds details about calls to the CPUAffinity method.
+		CPUAffinity []struct {
+		}
 		// GetAttributes holds details about calls to the GetAttributes method.
 		GetAttributes []struct {
 		}
@@ -129,6 +156,9 @@ type DeviceMock struct {
 		GetMigDeviceHandleByIndex []struct {
 			// N is the n argument value.
 			N int
+		}
+		// GetMigDevices holds details about calls to the GetMigDevices method.
+		GetMigDevices []struct {
 		}
 		// GetMigMode holds details about calls to the GetMigMode method.
 		GetMigMode []struct {
@@ -157,6 +187,12 @@ type DeviceMock struct {
 		// GetUUID holds details about calls to the GetUUID method.
 		GetUUID []struct {
 		}
+		// IsMigEnabled holds details about calls to the IsMigEnabled method.
+		IsMigEnabled []struct {
+		}
+		// Path holds details about calls to the Path method.
+		Path []struct {
+		}
 		// RegisterEvents holds details about calls to the RegisterEvents method.
 		RegisterEvents []struct {
 			// V is the v argument value.
@@ -165,12 +201,14 @@ type DeviceMock struct {
 			EventSet EventSet
 		}
 	}
+	lockCPUAffinity                        sync.RWMutex
 	lockGetAttributes                      sync.RWMutex
 	lockGetComputeInstanceId               sync.RWMutex
 	lockGetDeviceHandleFromMigDeviceHandle sync.RWMutex
 	lockGetGpuInstanceId                   sync.RWMutex
 	lockGetMaxMigDeviceCount               sync.RWMutex
 	lockGetMigDeviceHandleByIndex          sync.RWMutex
+	lockGetMigDevices                      sync.RWMutex
 	lockGetMigMode                         sync.RWMutex
 	lockGetMinorNumber                     sync.RWMutex
 	lockGetNvLinkRemotePciInfo             sync.RWMutex
@@ -178,30 +216,54 @@ type DeviceMock struct {
 	lockGetPciInfo                         sync.RWMutex
 	lockGetTopologyCommonAncestor          sync.RWMutex
 	lockGetUUID                            sync.RWMutex
+	lockIsMigEnabled                       sync.RWMutex
+	lockPath                               sync.RWMutex
 	lockRegisterEvents                     sync.RWMutex
 }
 
+// CPUAffinity calls CPUAffinityFunc.
+func (mock *DeviceLiteMock) CPUAffinity() int64 {
+	if mock.CPUAffinityFunc == nil {
+		panic("DeviceLiteMock.CPUAffinityFunc: method is nil but DeviceLite.CPUAffinity was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockCPUAffinity.Lock()
+	mock.calls.CPUAffinity = append(mock.calls.CPUAffinity, callInfo)
+	mock.lockCPUAffinity.Unlock()
+	return mock.CPUAffinityFunc()
+}
+
+// CPUAffinityCalls gets all the calls that were made to CPUAffinity.
+// Check the length with:
+//     len(mockedDeviceLite.CPUAffinityCalls())
+func (mock *DeviceLiteMock) CPUAffinityCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockCPUAffinity.RLock()
+	calls = mock.calls.CPUAffinity
+	mock.lockCPUAffinity.RUnlock()
+	return calls
+}
+
 // GetAttributes calls GetAttributesFunc.
-func (mock *DeviceMock) GetAttributes() (DeviceAttributes, Return) {
+func (mock *DeviceLiteMock) GetAttributes() (DeviceAttributes, Return) {
+	if mock.GetAttributesFunc == nil {
+		panic("DeviceLiteMock.GetAttributesFunc: method is nil but DeviceLite.GetAttributes was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetAttributes.Lock()
 	mock.calls.GetAttributes = append(mock.calls.GetAttributes, callInfo)
 	mock.lockGetAttributes.Unlock()
-	if mock.GetAttributesFunc == nil {
-		var (
-			deviceAttributesOut DeviceAttributes
-			returnOut           Return
-		)
-		return deviceAttributesOut, returnOut
-	}
 	return mock.GetAttributesFunc()
 }
 
 // GetAttributesCalls gets all the calls that were made to GetAttributes.
 // Check the length with:
-//     len(mockedDevice.GetAttributesCalls())
-func (mock *DeviceMock) GetAttributesCalls() []struct {
+//     len(mockedDeviceLite.GetAttributesCalls())
+func (mock *DeviceLiteMock) GetAttributesCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -212,26 +274,22 @@ func (mock *DeviceMock) GetAttributesCalls() []struct {
 }
 
 // GetComputeInstanceId calls GetComputeInstanceIdFunc.
-func (mock *DeviceMock) GetComputeInstanceId() (int, Return) {
+func (mock *DeviceLiteMock) GetComputeInstanceId() (int, Return) {
+	if mock.GetComputeInstanceIdFunc == nil {
+		panic("DeviceLiteMock.GetComputeInstanceIdFunc: method is nil but DeviceLite.GetComputeInstanceId was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetComputeInstanceId.Lock()
 	mock.calls.GetComputeInstanceId = append(mock.calls.GetComputeInstanceId, callInfo)
 	mock.lockGetComputeInstanceId.Unlock()
-	if mock.GetComputeInstanceIdFunc == nil {
-		var (
-			nOut      int
-			returnOut Return
-		)
-		return nOut, returnOut
-	}
 	return mock.GetComputeInstanceIdFunc()
 }
 
 // GetComputeInstanceIdCalls gets all the calls that were made to GetComputeInstanceId.
 // Check the length with:
-//     len(mockedDevice.GetComputeInstanceIdCalls())
-func (mock *DeviceMock) GetComputeInstanceIdCalls() []struct {
+//     len(mockedDeviceLite.GetComputeInstanceIdCalls())
+func (mock *DeviceLiteMock) GetComputeInstanceIdCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -242,26 +300,22 @@ func (mock *DeviceMock) GetComputeInstanceIdCalls() []struct {
 }
 
 // GetDeviceHandleFromMigDeviceHandle calls GetDeviceHandleFromMigDeviceHandleFunc.
-func (mock *DeviceMock) GetDeviceHandleFromMigDeviceHandle() (Device, Return) {
+func (mock *DeviceLiteMock) GetDeviceHandleFromMigDeviceHandle() (Device, Return) {
+	if mock.GetDeviceHandleFromMigDeviceHandleFunc == nil {
+		panic("DeviceLiteMock.GetDeviceHandleFromMigDeviceHandleFunc: method is nil but DeviceLite.GetDeviceHandleFromMigDeviceHandle was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetDeviceHandleFromMigDeviceHandle.Lock()
 	mock.calls.GetDeviceHandleFromMigDeviceHandle = append(mock.calls.GetDeviceHandleFromMigDeviceHandle, callInfo)
 	mock.lockGetDeviceHandleFromMigDeviceHandle.Unlock()
-	if mock.GetDeviceHandleFromMigDeviceHandleFunc == nil {
-		var (
-			deviceOut Device
-			returnOut Return
-		)
-		return deviceOut, returnOut
-	}
 	return mock.GetDeviceHandleFromMigDeviceHandleFunc()
 }
 
 // GetDeviceHandleFromMigDeviceHandleCalls gets all the calls that were made to GetDeviceHandleFromMigDeviceHandle.
 // Check the length with:
-//     len(mockedDevice.GetDeviceHandleFromMigDeviceHandleCalls())
-func (mock *DeviceMock) GetDeviceHandleFromMigDeviceHandleCalls() []struct {
+//     len(mockedDeviceLite.GetDeviceHandleFromMigDeviceHandleCalls())
+func (mock *DeviceLiteMock) GetDeviceHandleFromMigDeviceHandleCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -272,26 +326,22 @@ func (mock *DeviceMock) GetDeviceHandleFromMigDeviceHandleCalls() []struct {
 }
 
 // GetGpuInstanceId calls GetGpuInstanceIdFunc.
-func (mock *DeviceMock) GetGpuInstanceId() (int, Return) {
+func (mock *DeviceLiteMock) GetGpuInstanceId() (int, Return) {
+	if mock.GetGpuInstanceIdFunc == nil {
+		panic("DeviceLiteMock.GetGpuInstanceIdFunc: method is nil but DeviceLite.GetGpuInstanceId was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetGpuInstanceId.Lock()
 	mock.calls.GetGpuInstanceId = append(mock.calls.GetGpuInstanceId, callInfo)
 	mock.lockGetGpuInstanceId.Unlock()
-	if mock.GetGpuInstanceIdFunc == nil {
-		var (
-			nOut      int
-			returnOut Return
-		)
-		return nOut, returnOut
-	}
 	return mock.GetGpuInstanceIdFunc()
 }
 
 // GetGpuInstanceIdCalls gets all the calls that were made to GetGpuInstanceId.
 // Check the length with:
-//     len(mockedDevice.GetGpuInstanceIdCalls())
-func (mock *DeviceMock) GetGpuInstanceIdCalls() []struct {
+//     len(mockedDeviceLite.GetGpuInstanceIdCalls())
+func (mock *DeviceLiteMock) GetGpuInstanceIdCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -302,26 +352,22 @@ func (mock *DeviceMock) GetGpuInstanceIdCalls() []struct {
 }
 
 // GetMaxMigDeviceCount calls GetMaxMigDeviceCountFunc.
-func (mock *DeviceMock) GetMaxMigDeviceCount() (int, Return) {
+func (mock *DeviceLiteMock) GetMaxMigDeviceCount() (int, Return) {
+	if mock.GetMaxMigDeviceCountFunc == nil {
+		panic("DeviceLiteMock.GetMaxMigDeviceCountFunc: method is nil but DeviceLite.GetMaxMigDeviceCount was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetMaxMigDeviceCount.Lock()
 	mock.calls.GetMaxMigDeviceCount = append(mock.calls.GetMaxMigDeviceCount, callInfo)
 	mock.lockGetMaxMigDeviceCount.Unlock()
-	if mock.GetMaxMigDeviceCountFunc == nil {
-		var (
-			nOut      int
-			returnOut Return
-		)
-		return nOut, returnOut
-	}
 	return mock.GetMaxMigDeviceCountFunc()
 }
 
 // GetMaxMigDeviceCountCalls gets all the calls that were made to GetMaxMigDeviceCount.
 // Check the length with:
-//     len(mockedDevice.GetMaxMigDeviceCountCalls())
-func (mock *DeviceMock) GetMaxMigDeviceCountCalls() []struct {
+//     len(mockedDeviceLite.GetMaxMigDeviceCountCalls())
+func (mock *DeviceLiteMock) GetMaxMigDeviceCountCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -332,7 +378,10 @@ func (mock *DeviceMock) GetMaxMigDeviceCountCalls() []struct {
 }
 
 // GetMigDeviceHandleByIndex calls GetMigDeviceHandleByIndexFunc.
-func (mock *DeviceMock) GetMigDeviceHandleByIndex(n int) (Device, Return) {
+func (mock *DeviceLiteMock) GetMigDeviceHandleByIndex(n int) (Device, Return) {
+	if mock.GetMigDeviceHandleByIndexFunc == nil {
+		panic("DeviceLiteMock.GetMigDeviceHandleByIndexFunc: method is nil but DeviceLite.GetMigDeviceHandleByIndex was just called")
+	}
 	callInfo := struct {
 		N int
 	}{
@@ -341,20 +390,13 @@ func (mock *DeviceMock) GetMigDeviceHandleByIndex(n int) (Device, Return) {
 	mock.lockGetMigDeviceHandleByIndex.Lock()
 	mock.calls.GetMigDeviceHandleByIndex = append(mock.calls.GetMigDeviceHandleByIndex, callInfo)
 	mock.lockGetMigDeviceHandleByIndex.Unlock()
-	if mock.GetMigDeviceHandleByIndexFunc == nil {
-		var (
-			deviceOut Device
-			returnOut Return
-		)
-		return deviceOut, returnOut
-	}
 	return mock.GetMigDeviceHandleByIndexFunc(n)
 }
 
 // GetMigDeviceHandleByIndexCalls gets all the calls that were made to GetMigDeviceHandleByIndex.
 // Check the length with:
-//     len(mockedDevice.GetMigDeviceHandleByIndexCalls())
-func (mock *DeviceMock) GetMigDeviceHandleByIndexCalls() []struct {
+//     len(mockedDeviceLite.GetMigDeviceHandleByIndexCalls())
+func (mock *DeviceLiteMock) GetMigDeviceHandleByIndexCalls() []struct {
 	N int
 } {
 	var calls []struct {
@@ -366,28 +408,49 @@ func (mock *DeviceMock) GetMigDeviceHandleByIndexCalls() []struct {
 	return calls
 }
 
+// GetMigDevices calls GetMigDevicesFunc.
+func (mock *DeviceLiteMock) GetMigDevices() ([]DeviceLite, Return) {
+	if mock.GetMigDevicesFunc == nil {
+		panic("DeviceLiteMock.GetMigDevicesFunc: method is nil but DeviceLite.GetMigDevices was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetMigDevices.Lock()
+	mock.calls.GetMigDevices = append(mock.calls.GetMigDevices, callInfo)
+	mock.lockGetMigDevices.Unlock()
+	return mock.GetMigDevicesFunc()
+}
+
+// GetMigDevicesCalls gets all the calls that were made to GetMigDevices.
+// Check the length with:
+//     len(mockedDeviceLite.GetMigDevicesCalls())
+func (mock *DeviceLiteMock) GetMigDevicesCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetMigDevices.RLock()
+	calls = mock.calls.GetMigDevices
+	mock.lockGetMigDevices.RUnlock()
+	return calls
+}
+
 // GetMigMode calls GetMigModeFunc.
-func (mock *DeviceMock) GetMigMode() (int, int, Return) {
+func (mock *DeviceLiteMock) GetMigMode() (int, int, Return) {
+	if mock.GetMigModeFunc == nil {
+		panic("DeviceLiteMock.GetMigModeFunc: method is nil but DeviceLite.GetMigMode was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetMigMode.Lock()
 	mock.calls.GetMigMode = append(mock.calls.GetMigMode, callInfo)
 	mock.lockGetMigMode.Unlock()
-	if mock.GetMigModeFunc == nil {
-		var (
-			nOut1     int
-			nOut2     int
-			returnOut Return
-		)
-		return nOut1, nOut2, returnOut
-	}
 	return mock.GetMigModeFunc()
 }
 
 // GetMigModeCalls gets all the calls that were made to GetMigMode.
 // Check the length with:
-//     len(mockedDevice.GetMigModeCalls())
-func (mock *DeviceMock) GetMigModeCalls() []struct {
+//     len(mockedDeviceLite.GetMigModeCalls())
+func (mock *DeviceLiteMock) GetMigModeCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -398,26 +461,22 @@ func (mock *DeviceMock) GetMigModeCalls() []struct {
 }
 
 // GetMinorNumber calls GetMinorNumberFunc.
-func (mock *DeviceMock) GetMinorNumber() (int, Return) {
+func (mock *DeviceLiteMock) GetMinorNumber() (int, Return) {
+	if mock.GetMinorNumberFunc == nil {
+		panic("DeviceLiteMock.GetMinorNumberFunc: method is nil but DeviceLite.GetMinorNumber was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetMinorNumber.Lock()
 	mock.calls.GetMinorNumber = append(mock.calls.GetMinorNumber, callInfo)
 	mock.lockGetMinorNumber.Unlock()
-	if mock.GetMinorNumberFunc == nil {
-		var (
-			nOut      int
-			returnOut Return
-		)
-		return nOut, returnOut
-	}
 	return mock.GetMinorNumberFunc()
 }
 
 // GetMinorNumberCalls gets all the calls that were made to GetMinorNumber.
 // Check the length with:
-//     len(mockedDevice.GetMinorNumberCalls())
-func (mock *DeviceMock) GetMinorNumberCalls() []struct {
+//     len(mockedDeviceLite.GetMinorNumberCalls())
+func (mock *DeviceLiteMock) GetMinorNumberCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -428,7 +487,10 @@ func (mock *DeviceMock) GetMinorNumberCalls() []struct {
 }
 
 // GetNvLinkRemotePciInfo calls GetNvLinkRemotePciInfoFunc.
-func (mock *DeviceMock) GetNvLinkRemotePciInfo(n int) (PciInfo, Return) {
+func (mock *DeviceLiteMock) GetNvLinkRemotePciInfo(n int) (PciInfo, Return) {
+	if mock.GetNvLinkRemotePciInfoFunc == nil {
+		panic("DeviceLiteMock.GetNvLinkRemotePciInfoFunc: method is nil but DeviceLite.GetNvLinkRemotePciInfo was just called")
+	}
 	callInfo := struct {
 		N int
 	}{
@@ -437,20 +499,13 @@ func (mock *DeviceMock) GetNvLinkRemotePciInfo(n int) (PciInfo, Return) {
 	mock.lockGetNvLinkRemotePciInfo.Lock()
 	mock.calls.GetNvLinkRemotePciInfo = append(mock.calls.GetNvLinkRemotePciInfo, callInfo)
 	mock.lockGetNvLinkRemotePciInfo.Unlock()
-	if mock.GetNvLinkRemotePciInfoFunc == nil {
-		var (
-			pciInfoOut PciInfo
-			returnOut  Return
-		)
-		return pciInfoOut, returnOut
-	}
 	return mock.GetNvLinkRemotePciInfoFunc(n)
 }
 
 // GetNvLinkRemotePciInfoCalls gets all the calls that were made to GetNvLinkRemotePciInfo.
 // Check the length with:
-//     len(mockedDevice.GetNvLinkRemotePciInfoCalls())
-func (mock *DeviceMock) GetNvLinkRemotePciInfoCalls() []struct {
+//     len(mockedDeviceLite.GetNvLinkRemotePciInfoCalls())
+func (mock *DeviceLiteMock) GetNvLinkRemotePciInfoCalls() []struct {
 	N int
 } {
 	var calls []struct {
@@ -463,7 +518,10 @@ func (mock *DeviceMock) GetNvLinkRemotePciInfoCalls() []struct {
 }
 
 // GetNvLinkState calls GetNvLinkStateFunc.
-func (mock *DeviceMock) GetNvLinkState(n int) (EnableState, Return) {
+func (mock *DeviceLiteMock) GetNvLinkState(n int) (EnableState, Return) {
+	if mock.GetNvLinkStateFunc == nil {
+		panic("DeviceLiteMock.GetNvLinkStateFunc: method is nil but DeviceLite.GetNvLinkState was just called")
+	}
 	callInfo := struct {
 		N int
 	}{
@@ -472,20 +530,13 @@ func (mock *DeviceMock) GetNvLinkState(n int) (EnableState, Return) {
 	mock.lockGetNvLinkState.Lock()
 	mock.calls.GetNvLinkState = append(mock.calls.GetNvLinkState, callInfo)
 	mock.lockGetNvLinkState.Unlock()
-	if mock.GetNvLinkStateFunc == nil {
-		var (
-			enableStateOut EnableState
-			returnOut      Return
-		)
-		return enableStateOut, returnOut
-	}
 	return mock.GetNvLinkStateFunc(n)
 }
 
 // GetNvLinkStateCalls gets all the calls that were made to GetNvLinkState.
 // Check the length with:
-//     len(mockedDevice.GetNvLinkStateCalls())
-func (mock *DeviceMock) GetNvLinkStateCalls() []struct {
+//     len(mockedDeviceLite.GetNvLinkStateCalls())
+func (mock *DeviceLiteMock) GetNvLinkStateCalls() []struct {
 	N int
 } {
 	var calls []struct {
@@ -498,26 +549,22 @@ func (mock *DeviceMock) GetNvLinkStateCalls() []struct {
 }
 
 // GetPciInfo calls GetPciInfoFunc.
-func (mock *DeviceMock) GetPciInfo() (PciInfo, Return) {
+func (mock *DeviceLiteMock) GetPciInfo() (PciInfo, Return) {
+	if mock.GetPciInfoFunc == nil {
+		panic("DeviceLiteMock.GetPciInfoFunc: method is nil but DeviceLite.GetPciInfo was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetPciInfo.Lock()
 	mock.calls.GetPciInfo = append(mock.calls.GetPciInfo, callInfo)
 	mock.lockGetPciInfo.Unlock()
-	if mock.GetPciInfoFunc == nil {
-		var (
-			pciInfoOut PciInfo
-			returnOut  Return
-		)
-		return pciInfoOut, returnOut
-	}
 	return mock.GetPciInfoFunc()
 }
 
 // GetPciInfoCalls gets all the calls that were made to GetPciInfo.
 // Check the length with:
-//     len(mockedDevice.GetPciInfoCalls())
-func (mock *DeviceMock) GetPciInfoCalls() []struct {
+//     len(mockedDeviceLite.GetPciInfoCalls())
+func (mock *DeviceLiteMock) GetPciInfoCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -528,7 +575,10 @@ func (mock *DeviceMock) GetPciInfoCalls() []struct {
 }
 
 // GetTopologyCommonAncestor calls GetTopologyCommonAncestorFunc.
-func (mock *DeviceMock) GetTopologyCommonAncestor(device Device) (GpuTopologyLevel, Return) {
+func (mock *DeviceLiteMock) GetTopologyCommonAncestor(device Device) (GpuTopologyLevel, Return) {
+	if mock.GetTopologyCommonAncestorFunc == nil {
+		panic("DeviceLiteMock.GetTopologyCommonAncestorFunc: method is nil but DeviceLite.GetTopologyCommonAncestor was just called")
+	}
 	callInfo := struct {
 		Device Device
 	}{
@@ -537,20 +587,13 @@ func (mock *DeviceMock) GetTopologyCommonAncestor(device Device) (GpuTopologyLev
 	mock.lockGetTopologyCommonAncestor.Lock()
 	mock.calls.GetTopologyCommonAncestor = append(mock.calls.GetTopologyCommonAncestor, callInfo)
 	mock.lockGetTopologyCommonAncestor.Unlock()
-	if mock.GetTopologyCommonAncestorFunc == nil {
-		var (
-			gpuTopologyLevelOut GpuTopologyLevel
-			returnOut           Return
-		)
-		return gpuTopologyLevelOut, returnOut
-	}
 	return mock.GetTopologyCommonAncestorFunc(device)
 }
 
 // GetTopologyCommonAncestorCalls gets all the calls that were made to GetTopologyCommonAncestor.
 // Check the length with:
-//     len(mockedDevice.GetTopologyCommonAncestorCalls())
-func (mock *DeviceMock) GetTopologyCommonAncestorCalls() []struct {
+//     len(mockedDeviceLite.GetTopologyCommonAncestorCalls())
+func (mock *DeviceLiteMock) GetTopologyCommonAncestorCalls() []struct {
 	Device Device
 } {
 	var calls []struct {
@@ -563,26 +606,22 @@ func (mock *DeviceMock) GetTopologyCommonAncestorCalls() []struct {
 }
 
 // GetUUID calls GetUUIDFunc.
-func (mock *DeviceMock) GetUUID() (string, Return) {
+func (mock *DeviceLiteMock) GetUUID() (string, Return) {
+	if mock.GetUUIDFunc == nil {
+		panic("DeviceLiteMock.GetUUIDFunc: method is nil but DeviceLite.GetUUID was just called")
+	}
 	callInfo := struct {
 	}{}
 	mock.lockGetUUID.Lock()
 	mock.calls.GetUUID = append(mock.calls.GetUUID, callInfo)
 	mock.lockGetUUID.Unlock()
-	if mock.GetUUIDFunc == nil {
-		var (
-			sOut      string
-			returnOut Return
-		)
-		return sOut, returnOut
-	}
 	return mock.GetUUIDFunc()
 }
 
 // GetUUIDCalls gets all the calls that were made to GetUUID.
 // Check the length with:
-//     len(mockedDevice.GetUUIDCalls())
-func (mock *DeviceMock) GetUUIDCalls() []struct {
+//     len(mockedDeviceLite.GetUUIDCalls())
+func (mock *DeviceLiteMock) GetUUIDCalls() []struct {
 } {
 	var calls []struct {
 	}
@@ -592,8 +631,63 @@ func (mock *DeviceMock) GetUUIDCalls() []struct {
 	return calls
 }
 
+// IsMigEnabled calls IsMigEnabledFunc.
+func (mock *DeviceLiteMock) IsMigEnabled() (bool, Return) {
+	if mock.IsMigEnabledFunc == nil {
+		panic("DeviceLiteMock.IsMigEnabledFunc: method is nil but DeviceLite.IsMigEnabled was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockIsMigEnabled.Lock()
+	mock.calls.IsMigEnabled = append(mock.calls.IsMigEnabled, callInfo)
+	mock.lockIsMigEnabled.Unlock()
+	return mock.IsMigEnabledFunc()
+}
+
+// IsMigEnabledCalls gets all the calls that were made to IsMigEnabled.
+// Check the length with:
+//     len(mockedDeviceLite.IsMigEnabledCalls())
+func (mock *DeviceLiteMock) IsMigEnabledCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockIsMigEnabled.RLock()
+	calls = mock.calls.IsMigEnabled
+	mock.lockIsMigEnabled.RUnlock()
+	return calls
+}
+
+// Path calls PathFunc.
+func (mock *DeviceLiteMock) Path() string {
+	if mock.PathFunc == nil {
+		panic("DeviceLiteMock.PathFunc: method is nil but DeviceLite.Path was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockPath.Lock()
+	mock.calls.Path = append(mock.calls.Path, callInfo)
+	mock.lockPath.Unlock()
+	return mock.PathFunc()
+}
+
+// PathCalls gets all the calls that were made to Path.
+// Check the length with:
+//     len(mockedDeviceLite.PathCalls())
+func (mock *DeviceLiteMock) PathCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockPath.RLock()
+	calls = mock.calls.Path
+	mock.lockPath.RUnlock()
+	return calls
+}
+
 // RegisterEvents calls RegisterEventsFunc.
-func (mock *DeviceMock) RegisterEvents(v uint64, eventSet EventSet) Return {
+func (mock *DeviceLiteMock) RegisterEvents(v uint64, eventSet EventSet) Return {
+	if mock.RegisterEventsFunc == nil {
+		panic("DeviceLiteMock.RegisterEventsFunc: method is nil but DeviceLite.RegisterEvents was just called")
+	}
 	callInfo := struct {
 		V        uint64
 		EventSet EventSet
@@ -604,19 +698,13 @@ func (mock *DeviceMock) RegisterEvents(v uint64, eventSet EventSet) Return {
 	mock.lockRegisterEvents.Lock()
 	mock.calls.RegisterEvents = append(mock.calls.RegisterEvents, callInfo)
 	mock.lockRegisterEvents.Unlock()
-	if mock.RegisterEventsFunc == nil {
-		var (
-			returnOut Return
-		)
-		return returnOut
-	}
 	return mock.RegisterEventsFunc(v, eventSet)
 }
 
 // RegisterEventsCalls gets all the calls that were made to RegisterEvents.
 // Check the length with:
-//     len(mockedDevice.RegisterEventsCalls())
-func (mock *DeviceMock) RegisterEventsCalls() []struct {
+//     len(mockedDeviceLite.RegisterEventsCalls())
+func (mock *DeviceLiteMock) RegisterEventsCalls() []struct {
 	V        uint64
 	EventSet EventSet
 } {

@@ -46,15 +46,15 @@ const (
 	TwelveNVLINKLinks
 )
 
-func GetP2PLink(dev1 nvml.Device, dev2 nvml.Device) (P2PLinkType, error) {
+func GetP2PLink(dev1 Device, dev2 Device) (P2PLinkType, error) {
 	level, ret := dev1.GetTopologyCommonAncestor(dev2)
-	if ret != nvml.SUCCESS {
-		return P2PLinkUnknown, fmt.Errorf("failed to get common ancestor: %v", nvml.ErrorString(ret))
+	if ret.Value() != nvml.SUCCESS {
+		return P2PLinkUnknown, fmt.Errorf("failed to get common ancestor: %v", ret.Error())
 	}
 
 	var link P2PLinkType
 
-	switch level {
+	switch nvml.GpuTopologyLevel(level) {
 	case TOPOLOGY_INTERNAL:
 		link = P2PLinkSameBoard
 	case TOPOLOGY_SINGLE:
@@ -74,10 +74,10 @@ func GetP2PLink(dev1 nvml.Device, dev2 nvml.Device) (P2PLinkType, error) {
 	return link, nil
 }
 
-func GetNVLink(dev1 nvml.Device, dev2 nvml.Device) (link P2PLinkType, err error) {
+func GetNVLink(dev1 Device, dev2 Device) (link P2PLinkType, err error) {
 	pciInfo2, ret := dev2.GetPciInfo()
-	if ret != nvml.SUCCESS {
-		return P2PLinkUnknown, fmt.Errorf("failed to get PciInfo: %v", nvml.ErrorString(ret))
+	if ret.Value() != nvml.SUCCESS {
+		return P2PLinkUnknown, fmt.Errorf("failed to get PciInfo: %v", ret.Error())
 	}
 
 	pciInfos, err := deviceGetAllNvLinkRemotePciInfo(dev1)
@@ -107,26 +107,26 @@ func (l P2PLinkType) add() P2PLinkType {
 	return l + 1
 }
 
-func deviceGetAllNvLinkRemotePciInfo(dev nvml.Device) ([]nvml.PciInfo, error) {
-	var pciInfos []nvml.PciInfo
+func deviceGetAllNvLinkRemotePciInfo(dev Device) ([]PciInfo, error) {
+	var pciInfos []PciInfo
 	for i := 0; i < nvml.NVLINK_MAX_LINKS; i++ {
 		state, ret := dev.GetNvLinkState(i)
-		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT {
+		if ret.Value() == ERROR_NOT_SUPPORTED || ret.Value() == ERROR_INVALID_ARGUMENT {
 			continue
 		}
-		if ret != nvml.SUCCESS {
-			return nil, fmt.Errorf("failed to query link %d state: %v", i, nvml.ErrorString(ret))
+		if ret.Value() != SUCCESS {
+			return nil, fmt.Errorf("failed to query link %d state: %v", i, ret.Error())
 		}
-		if state != nvml.FEATURE_ENABLED {
+		if state != FEATURE_ENABLED {
 			continue
 		}
 
 		info, ret := dev.GetNvLinkRemotePciInfo(i)
-		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT {
+		if ret.Value() == nvml.ERROR_NOT_SUPPORTED || ret.Value() == nvml.ERROR_INVALID_ARGUMENT {
 			continue
 		}
-		if ret != nvml.SUCCESS {
-			return nil, fmt.Errorf("failed to query remote link %d: %v", i, nvml.ErrorString(ret))
+		if ret.Value() != nvml.SUCCESS {
+			return nil, fmt.Errorf("failed to query remote link %d: %v", i, ret.Error())
 		}
 		pciInfos = append(pciInfos, info)
 	}

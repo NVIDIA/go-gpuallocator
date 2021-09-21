@@ -88,5 +88,9 @@ const (
 )
 
 const (
+	FEATURE_DISABLED = EnableState(nvml.FEATURE_DISABLED)
+	FEATURE_ENABLED  = EnableState(nvml.FEATURE_ENABLED)
+)
+const (
 	EventTypeXidCriticalError = nvml.EventTypeXidCriticalError
 )

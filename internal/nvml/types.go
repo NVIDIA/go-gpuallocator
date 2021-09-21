@@ -21,4 +21,6 @@ import (
 )
 
 type DeviceAttributes nvml.DeviceAttributes
+type GpuTopologyLevel nvml.GpuTopologyLevel
+type EnableState nvml.EnableState
 type PciInfo nvml.PciInfo

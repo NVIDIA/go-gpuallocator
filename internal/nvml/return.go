@@ -20,6 +20,7 @@ import (
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
 )
 
+//go:generate moq -stub -out return_mock.go . Return
 type Return interface {
 	Value() nvml.Return
 	String() string

@@ -109,15 +109,19 @@ func RunPolicyAllocTests(t *testing.T, policy Policy, tests []PolicyAllocTest) {
 }
 
 func NewTestGPU(index int) *TestGPU {
-	return &TestGPU{
-		Index: index,
-		Device: &nvml.Device{
-			UUID: fmt.Sprintf("GPU-%d", index),
-			PCI: nvml.PCIInfo{
-				BusID: fmt.Sprintf("GPU-%d", index),
-			},
+	id := fmt.Sprintf("GPU-%d", index)
+
+	mockedSuccess := &nvml.ReturnMock{}
+	mockedDevice := &nvml.DeviceLiteMock{
+		GetUUIDFunc: func() (string, nvml.Return) {
+			return id, mockedSuccess
 		},
-		Links: make(map[int][]P2PLink),
+	}
+	return &TestGPU{
+		Index:      index,
+		UUID:       id,
+		DeviceLite: mockedDevice,
+		Links:      make(map[int][]P2PLink),
 	}
 }
 

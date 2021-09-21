@@ -28,6 +28,11 @@ import (
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
 )
 
+const (
+	CPUAffinityNotSupported = -1
+)
+
+//go:generate moq -out device_lite_mock.go . DeviceLite
 type DeviceLite interface {
 	Device
 

@@ -46,8 +46,8 @@ func NewBestEffortAllocator() (*Allocator, error) {
 // NewAllocator creates a new Allocator using the given allocation policy
 func NewAllocator(policy Policy) (*Allocator, error) {
 	ret := nvml.Init()
-	if ret != nvml.SUCCESS {
-		return nil, fmt.Errorf("error initializing NVML: %v", nvml.ErrorString(ret))
+	if ret.Value() != nvml.SUCCESS {
+		return nil, fmt.Errorf("error initializing NVML: %v", ret.Error())
 	}
 
 	devices, err := NewDevices()

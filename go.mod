@@ -2,7 +2,7 @@ module github.com/nvidia/go-gpuallocator
 
 go 1.15
 
-require github.com/NVIDIA/gpu-monitoring-tools v0.0.0-20201109160820-d08ea3cdcce4
+require github.com/NVIDIA/go-nvml v0.11.1-0
 
 replace (
 	k8s.io/api => k8s.io/api v0.18.2

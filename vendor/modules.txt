@@ -1,6 +1,9 @@
+# github.com/NVIDIA/go-nvml v0.11.1-0
+## explicit
+github.com/NVIDIA/go-nvml/pkg/dl
+github.com/NVIDIA/go-nvml/pkg/nvml
 # github.com/NVIDIA/gpu-monitoring-tools v0.0.0-20201109160820-d08ea3cdcce4
 ## explicit
-github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml
 # k8s.io/api => k8s.io/api v0.18.2
 # k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.2
 # k8s.io/apimachinery => k8s.io/apimachinery v0.18.2

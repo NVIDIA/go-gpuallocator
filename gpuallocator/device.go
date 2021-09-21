@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/nvidia/go-gpuallocator/internal/nvml"
 )
 
 // Device represents a GPU device as reported by NVML, including all of its

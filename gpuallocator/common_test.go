@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/nvidia/go-gpuallocator/internal/nvml"
 )
 
 const pad = ^int(0)

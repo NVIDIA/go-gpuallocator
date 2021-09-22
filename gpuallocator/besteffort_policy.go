@@ -232,7 +232,7 @@ func iterateGPUPartitions(devices []*Device, size int, callback func([][]*Device
 	// Optimize for the case when size == 1.
 	if size == 1 {
 		for _, device := range devices {
-			callback([][]*Device{[]*Device{device}})
+			callback([][]*Device{{device}})
 		}
 		return
 	}

@@ -119,7 +119,6 @@ func NewTestGPU(index int) *TestGPU {
 	}
 	return &TestGPU{
 		Index:      index,
-		UUID:       id,
 		DeviceLite: mockedDevice,
 		Links:      make(map[int][]P2PLink),
 	}

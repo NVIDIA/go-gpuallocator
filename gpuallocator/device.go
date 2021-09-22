@@ -4,6 +4,7 @@ package gpuallocator
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 // Point-to-Point link information.
 type Device struct {
 	nvml.DeviceLite
-	UUID  string
 	Index int
 	Links map[int][]P2PLink
 }
@@ -44,14 +44,8 @@ func NewDevices() ([]*Device, error) {
 			return nil, fmt.Errorf("error creating nvml.Device %v: %v", i, ret.Error())
 		}
 
-		uuid, ret := nvmlDevice.GetUUID()
-		if ret.Value() != nvml.SUCCESS {
-			return nil, fmt.Errorf("failed to get device UUID: %v", ret.Error())
-		}
-
 		device := Device{
 			DeviceLite: nvmlDevice,
-			UUID:       uuid,
 			Index:      i,
 			Links:      make(map[int][]P2PLink),
 		}
@@ -120,6 +114,11 @@ func (d *Device) String() string {
 
 // Details returns all details of a Device as a multi-line string.
 func (d *Device) Details() string {
+	uuid, ret := d.GetUUID()
+	if ret.Value() != nvml.SUCCESS {
+		uuid = "UNKNOWN"
+	}
+
 	var pciBusID string
 	pciInfo, ret := d.GetPciInfo()
 	if ret.Value() != nvml.SUCCESS {
@@ -130,7 +129,7 @@ func (d *Device) Details() string {
 
 	s := ""
 	s += fmt.Sprintf("Device %v:\n", d.Index)
-	s += fmt.Sprintf("  UUID: %v\n", d.UUID)
+	s += fmt.Sprintf("  UUID: %v\n", uuid)
 	s += fmt.Sprintf("  PCI BusID: %v\n", pciBusID)
 	s += fmt.Sprintf("  SocketAffinity: %v\n", d.CPUAffinity())
 	s += fmt.Sprintf("  Topology: \n")
@@ -144,6 +143,14 @@ func (d *Device) Details() string {
 	return strings.TrimSuffix(s, "\n")
 }
 
+func (d Device) uuidOrPanic() string {
+	uuid, ret := d.GetUUID()
+	if ret.Value() != nvml.SUCCESS {
+		log.Panicf("could not get UUID for device: %v\n", ret.Error())
+	}
+	return uuid
+}
+
 // NewDeviceSet creates a new DeviceSet.
 func NewDeviceSet(devices ...*Device) DeviceSet {
 	set := make(DeviceSet)
@@ -154,14 +161,16 @@ func NewDeviceSet(devices ...*Device) DeviceSet {
 // Insert inserts a list of devices into a DeviceSet.
 func (ds DeviceSet) Insert(devices ...*Device) {
 	for _, device := range devices {
-		ds[device.UUID] = device
+		uuid := device.uuidOrPanic()
+		ds[uuid] = device
 	}
 }
 
 // Delete deletes a list of devices from a DeviceSet.
 func (ds DeviceSet) Delete(devices ...*Device) {
 	for _, device := range devices {
-		delete(ds, device.UUID)
+		uuid := device.uuidOrPanic()
+		delete(ds, uuid)
 	}
 }
 
@@ -171,7 +180,8 @@ func (ds DeviceSet) Contains(device *Device) bool {
 		return false
 	}
 
-	_, ok := ds[device.UUID]
+	uuid := device.uuidOrPanic()
+	_, ok := ds[uuid]
 	return ok
 }
 

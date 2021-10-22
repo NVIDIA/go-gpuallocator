@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-nvlib/pkg/deprecated/gpu-monitoring-tools/bindings/go/nvml"
 )
 
 // Allocator defines the primary object for allocating and freeing the

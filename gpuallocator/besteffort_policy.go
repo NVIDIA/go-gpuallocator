@@ -5,7 +5,7 @@ package gpuallocator
 import (
 	"fmt"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-nvlib/pkg/deprecated/gpu-monitoring-tools/bindings/go/nvml"
 )
 
 type bestEffortPolicy struct{}

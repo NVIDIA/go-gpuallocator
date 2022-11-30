@@ -29,7 +29,7 @@ type P2PLink struct {
 // DeviceSet is used to hold and manipulate a set of unique GPU devices.
 type DeviceSet map[string]*Device
 
-// Create a list of Devices from all available nvml.Devices.
+// NewDevices creates a list of Devices from all available nvml.Devices.
 func NewDevices() ([]*Device, error) {
 	count, err := nvml.GetDeviceCount()
 	if err != nil {
@@ -71,7 +71,7 @@ func NewDevices() ([]*Device, error) {
 	return devices, nil
 }
 
-// Create a list of Devices from the specific set of GPU uuids passed in.
+// NewDevicesFrom creates a list of Devices from the specific set of GPU uuids passed in.
 func NewDevicesFrom(uuids []string) ([]*Device, error) {
 	devices, err := NewDevices()
 	if err != nil {

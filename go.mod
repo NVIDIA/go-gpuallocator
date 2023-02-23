@@ -1,4 +1,4 @@
-module github.com/nvidia/go-gpuallocator
+module github.com/NVIDIA/go-gpuallocator
 
 go 1.15
 

@@ -15,22 +15,22 @@ func NewBestEffortPolicy() Policy {
 	return &bestEffortPolicy{}
 }
 
-//  Allocate finds the best set of 'size' GPUs to allocate from a list of
-//  available GPU devices and returns them. The algorithm is designed to
-//  ensure that a list of 'required' GPU devices is present in the final
-//  allocation.
+// Allocate finds the best set of 'size' GPUs to allocate from a list of
+// available GPU devices and returns them. The algorithm is designed to
+// ensure that a list of 'required' GPU devices is present in the final
+// allocation.
 //
-//  This algorithm considers all possible sets of GPUs of size 'size'.
-//  However, it does not settle for the greedy solution of looking for the
-//  single set of size 'size' with the highest score. Instead, it looks for a
-//  solution that maximizes the total score when dividing up all available
-//  GPUs on the node into sets of size 'size' and then summing their
-//  individual scores. It then returns the set of GPUs from that grouping
-//  with the highest individual score.
+// This algorithm considers all possible sets of GPUs of size 'size'.
+// However, it does not settle for the greedy solution of looking for the
+// single set of size 'size' with the highest score. Instead, it looks for a
+// solution that maximizes the total score when dividing up all available
+// GPUs on the node into sets of size 'size' and then summing their
+// individual scores. It then returns the set of GPUs from that grouping
+// with the highest individual score.
 //
-//  Such a solution is necessary in the general case because of the
-//  non-hierarchical nature of the various links that influence the score
-//  calculated for each pair of GPUs.
+// Such a solution is necessary in the general case because of the
+// non-hierarchical nature of the various links that influence the score
+// calculated for each pair of GPUs.
 func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, size int) []*Device {
 	if size <= 0 {
 		return []*Device{}
@@ -218,7 +218,7 @@ func iterateGPUPartitions(devices []*Device, size int, callback func([][]*Device
 	// Optimize for the case when size == 1.
 	if size == 1 {
 		for _, device := range devices {
-			callback([][]*Device{[]*Device{device}})
+			callback([][]*Device{{device}})
 		}
 		return
 	}

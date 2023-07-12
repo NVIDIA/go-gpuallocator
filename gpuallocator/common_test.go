@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-gpuallocator/internal/gpulib"
 )
 
 const pad = ^int(0)
@@ -109,24 +109,27 @@ func RunPolicyAllocTests(t *testing.T, policy Policy, tests []PolicyAllocTest) {
 }
 
 func NewTestGPU(index int) *TestGPU {
-	return &TestGPU{
-		Index: index,
-		Device: &nvml.Device{
-			UUID: fmt.Sprintf("GPU-%d", index),
-			PCI: nvml.PCIInfo{
-				BusID: fmt.Sprintf("GPU-%d", index),
-			},
+	id := fmt.Sprintf("GPU-%d", index)
+
+	mockedSuccess := new(gpulib.Return)
+	mockedDevice := &gpulib.DeviceLiteMock{
+		GetUUIDFunc: func() (string, gpulib.Return) {
+			return id, *mockedSuccess
 		},
-		Links: make(map[int][]P2PLink),
+	}
+	return &TestGPU{
+		Index:      index,
+		DeviceLite: mockedDevice,
+		Links:      make(map[int][]P2PLink),
 	}
 }
 
-func (from *TestGPU) AddLink(to *TestGPU, linkType nvml.P2PLinkType) {
+func (from *TestGPU) AddLink(to *TestGPU, linkType gpulib.P2PLinkType) {
 	link := P2PLink{(*Device)(to), linkType}
 	from.Links[to.Index] = append(from.Links[to.Index], link)
 }
 
-func (n TestNode) AddLink(from, to int, linkType nvml.P2PLinkType) {
+func (n TestNode) AddLink(from, to int, linkType gpulib.P2PLinkType) {
 	n[from].AddLink(n[to], linkType)
 }
 
@@ -147,20 +150,20 @@ func New4xRTX8000Node() TestNode {
 	}
 
 	// NVLinks
-	node.AddLink(0, 3, nvml.TwoNVLINKLinks)
-	node.AddLink(1, 2, nvml.TwoNVLINKLinks)
-	node.AddLink(2, 1, nvml.TwoNVLINKLinks)
-	node.AddLink(3, 0, nvml.TwoNVLINKLinks)
+	node.AddLink(0, 3, gpulib.TwoNVLINKLinks)
+	node.AddLink(1, 2, gpulib.TwoNVLINKLinks)
+	node.AddLink(2, 1, gpulib.TwoNVLINKLinks)
+	node.AddLink(3, 0, gpulib.TwoNVLINKLinks)
 
 	// P2PLinks
-	node.AddLink(0, 1, nvml.P2PLinkSameCPU)
-	node.AddLink(0, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 0, nvml.P2PLinkSameCPU)
-	node.AddLink(1, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 3, nvml.P2PLinkSameCPU)
-	node.AddLink(3, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 2, nvml.P2PLinkSameCPU)
+	node.AddLink(0, 1, gpulib.P2PLinkSameCPU)
+	node.AddLink(0, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 0, gpulib.P2PLinkSameCPU)
+	node.AddLink(1, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 3, gpulib.P2PLinkSameCPU)
+	node.AddLink(3, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 2, gpulib.P2PLinkSameCPU)
 
 	return node
 }
@@ -178,110 +181,110 @@ func NewDGX1PascalNode() TestNode {
 	}
 
 	// NVLinks
-	node.AddLink(0, 1, nvml.SingleNVLINKLink)
-	node.AddLink(0, 2, nvml.SingleNVLINKLink)
-	node.AddLink(0, 3, nvml.SingleNVLINKLink)
-	node.AddLink(0, 4, nvml.SingleNVLINKLink)
+	node.AddLink(0, 1, gpulib.SingleNVLINKLink)
+	node.AddLink(0, 2, gpulib.SingleNVLINKLink)
+	node.AddLink(0, 3, gpulib.SingleNVLINKLink)
+	node.AddLink(0, 4, gpulib.SingleNVLINKLink)
 
-	node.AddLink(1, 0, nvml.SingleNVLINKLink)
-	node.AddLink(1, 2, nvml.SingleNVLINKLink)
-	node.AddLink(1, 3, nvml.SingleNVLINKLink)
-	node.AddLink(1, 5, nvml.SingleNVLINKLink)
+	node.AddLink(1, 0, gpulib.SingleNVLINKLink)
+	node.AddLink(1, 2, gpulib.SingleNVLINKLink)
+	node.AddLink(1, 3, gpulib.SingleNVLINKLink)
+	node.AddLink(1, 5, gpulib.SingleNVLINKLink)
 
-	node.AddLink(2, 0, nvml.SingleNVLINKLink)
-	node.AddLink(2, 1, nvml.SingleNVLINKLink)
-	node.AddLink(2, 3, nvml.SingleNVLINKLink)
-	node.AddLink(2, 6, nvml.SingleNVLINKLink)
+	node.AddLink(2, 0, gpulib.SingleNVLINKLink)
+	node.AddLink(2, 1, gpulib.SingleNVLINKLink)
+	node.AddLink(2, 3, gpulib.SingleNVLINKLink)
+	node.AddLink(2, 6, gpulib.SingleNVLINKLink)
 
-	node.AddLink(3, 0, nvml.SingleNVLINKLink)
-	node.AddLink(3, 1, nvml.SingleNVLINKLink)
-	node.AddLink(3, 2, nvml.SingleNVLINKLink)
-	node.AddLink(3, 7, nvml.SingleNVLINKLink)
+	node.AddLink(3, 0, gpulib.SingleNVLINKLink)
+	node.AddLink(3, 1, gpulib.SingleNVLINKLink)
+	node.AddLink(3, 2, gpulib.SingleNVLINKLink)
+	node.AddLink(3, 7, gpulib.SingleNVLINKLink)
 
-	node.AddLink(4, 0, nvml.SingleNVLINKLink)
-	node.AddLink(4, 5, nvml.SingleNVLINKLink)
-	node.AddLink(4, 6, nvml.SingleNVLINKLink)
-	node.AddLink(4, 7, nvml.SingleNVLINKLink)
+	node.AddLink(4, 0, gpulib.SingleNVLINKLink)
+	node.AddLink(4, 5, gpulib.SingleNVLINKLink)
+	node.AddLink(4, 6, gpulib.SingleNVLINKLink)
+	node.AddLink(4, 7, gpulib.SingleNVLINKLink)
 
-	node.AddLink(5, 1, nvml.SingleNVLINKLink)
-	node.AddLink(5, 4, nvml.SingleNVLINKLink)
-	node.AddLink(5, 6, nvml.SingleNVLINKLink)
-	node.AddLink(5, 7, nvml.SingleNVLINKLink)
+	node.AddLink(5, 1, gpulib.SingleNVLINKLink)
+	node.AddLink(5, 4, gpulib.SingleNVLINKLink)
+	node.AddLink(5, 6, gpulib.SingleNVLINKLink)
+	node.AddLink(5, 7, gpulib.SingleNVLINKLink)
 
-	node.AddLink(6, 2, nvml.SingleNVLINKLink)
-	node.AddLink(6, 4, nvml.SingleNVLINKLink)
-	node.AddLink(6, 5, nvml.SingleNVLINKLink)
-	node.AddLink(6, 7, nvml.SingleNVLINKLink)
+	node.AddLink(6, 2, gpulib.SingleNVLINKLink)
+	node.AddLink(6, 4, gpulib.SingleNVLINKLink)
+	node.AddLink(6, 5, gpulib.SingleNVLINKLink)
+	node.AddLink(6, 7, gpulib.SingleNVLINKLink)
 
-	node.AddLink(7, 3, nvml.SingleNVLINKLink)
-	node.AddLink(7, 4, nvml.SingleNVLINKLink)
-	node.AddLink(7, 5, nvml.SingleNVLINKLink)
-	node.AddLink(7, 6, nvml.SingleNVLINKLink)
+	node.AddLink(7, 3, gpulib.SingleNVLINKLink)
+	node.AddLink(7, 4, gpulib.SingleNVLINKLink)
+	node.AddLink(7, 5, gpulib.SingleNVLINKLink)
+	node.AddLink(7, 6, gpulib.SingleNVLINKLink)
 
 	// P2PLinks
-	node.AddLink(0, 1, nvml.P2PLinkHostBridge)
-	node.AddLink(0, 2, nvml.P2PLinkSingleSwitch)
-	node.AddLink(0, 3, nvml.P2PLinkHostBridge)
-	node.AddLink(0, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(0, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(0, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(0, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(0, 1, gpulib.P2PLinkHostBridge)
+	node.AddLink(0, 2, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(0, 3, gpulib.P2PLinkHostBridge)
+	node.AddLink(0, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(0, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(0, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(0, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(1, 0, nvml.P2PLinkHostBridge)
-	node.AddLink(1, 2, nvml.P2PLinkHostBridge)
-	node.AddLink(1, 3, nvml.P2PLinkSingleSwitch)
-	node.AddLink(1, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(1, 0, gpulib.P2PLinkHostBridge)
+	node.AddLink(1, 2, gpulib.P2PLinkHostBridge)
+	node.AddLink(1, 3, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(1, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(2, 0, nvml.P2PLinkSingleSwitch)
-	node.AddLink(2, 1, nvml.P2PLinkHostBridge)
-	node.AddLink(2, 3, nvml.P2PLinkHostBridge)
-	node.AddLink(2, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(2, 0, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(2, 1, gpulib.P2PLinkHostBridge)
+	node.AddLink(2, 3, gpulib.P2PLinkHostBridge)
+	node.AddLink(2, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(3, 0, nvml.P2PLinkHostBridge)
-	node.AddLink(3, 1, nvml.P2PLinkSingleSwitch)
-	node.AddLink(3, 2, nvml.P2PLinkHostBridge)
-	node.AddLink(3, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(3, 0, gpulib.P2PLinkHostBridge)
+	node.AddLink(3, 1, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(3, 2, gpulib.P2PLinkHostBridge)
+	node.AddLink(3, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(4, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 5, nvml.P2PLinkHostBridge)
-	node.AddLink(4, 6, nvml.P2PLinkSingleSwitch)
-	node.AddLink(4, 7, nvml.P2PLinkHostBridge)
+	node.AddLink(4, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 5, gpulib.P2PLinkHostBridge)
+	node.AddLink(4, 6, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(4, 7, gpulib.P2PLinkHostBridge)
 
-	node.AddLink(5, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 4, nvml.P2PLinkHostBridge)
-	node.AddLink(5, 6, nvml.P2PLinkHostBridge)
-	node.AddLink(5, 7, nvml.P2PLinkSingleSwitch)
+	node.AddLink(5, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 4, gpulib.P2PLinkHostBridge)
+	node.AddLink(5, 6, gpulib.P2PLinkHostBridge)
+	node.AddLink(5, 7, gpulib.P2PLinkSingleSwitch)
 
-	node.AddLink(6, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 4, nvml.P2PLinkSingleSwitch)
-	node.AddLink(6, 5, nvml.P2PLinkHostBridge)
-	node.AddLink(6, 7, nvml.P2PLinkHostBridge)
+	node.AddLink(6, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 4, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(6, 5, gpulib.P2PLinkHostBridge)
+	node.AddLink(6, 7, gpulib.P2PLinkHostBridge)
 
-	node.AddLink(7, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 4, nvml.P2PLinkHostBridge)
-	node.AddLink(7, 5, nvml.P2PLinkSingleSwitch)
-	node.AddLink(7, 6, nvml.P2PLinkHostBridge)
+	node.AddLink(7, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 4, gpulib.P2PLinkHostBridge)
+	node.AddLink(7, 5, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(7, 6, gpulib.P2PLinkHostBridge)
 
 	return node
 }
@@ -299,110 +302,110 @@ func NewDGX1VoltaNode() TestNode {
 	}
 
 	// NVLinks
-	node.AddLink(0, 1, nvml.SingleNVLINKLink)
-	node.AddLink(0, 2, nvml.SingleNVLINKLink)
-	node.AddLink(0, 3, nvml.TwoNVLINKLinks)
-	node.AddLink(0, 4, nvml.TwoNVLINKLinks)
+	node.AddLink(0, 1, gpulib.SingleNVLINKLink)
+	node.AddLink(0, 2, gpulib.SingleNVLINKLink)
+	node.AddLink(0, 3, gpulib.TwoNVLINKLinks)
+	node.AddLink(0, 4, gpulib.TwoNVLINKLinks)
 
-	node.AddLink(1, 0, nvml.SingleNVLINKLink)
-	node.AddLink(1, 2, nvml.TwoNVLINKLinks)
-	node.AddLink(1, 3, nvml.SingleNVLINKLink)
-	node.AddLink(1, 5, nvml.TwoNVLINKLinks)
+	node.AddLink(1, 0, gpulib.SingleNVLINKLink)
+	node.AddLink(1, 2, gpulib.TwoNVLINKLinks)
+	node.AddLink(1, 3, gpulib.SingleNVLINKLink)
+	node.AddLink(1, 5, gpulib.TwoNVLINKLinks)
 
-	node.AddLink(2, 0, nvml.SingleNVLINKLink)
-	node.AddLink(2, 1, nvml.TwoNVLINKLinks)
-	node.AddLink(2, 3, nvml.TwoNVLINKLinks)
-	node.AddLink(2, 6, nvml.SingleNVLINKLink)
+	node.AddLink(2, 0, gpulib.SingleNVLINKLink)
+	node.AddLink(2, 1, gpulib.TwoNVLINKLinks)
+	node.AddLink(2, 3, gpulib.TwoNVLINKLinks)
+	node.AddLink(2, 6, gpulib.SingleNVLINKLink)
 
-	node.AddLink(3, 0, nvml.TwoNVLINKLinks)
-	node.AddLink(3, 1, nvml.SingleNVLINKLink)
-	node.AddLink(3, 2, nvml.TwoNVLINKLinks)
-	node.AddLink(3, 7, nvml.SingleNVLINKLink)
+	node.AddLink(3, 0, gpulib.TwoNVLINKLinks)
+	node.AddLink(3, 1, gpulib.SingleNVLINKLink)
+	node.AddLink(3, 2, gpulib.TwoNVLINKLinks)
+	node.AddLink(3, 7, gpulib.SingleNVLINKLink)
 
-	node.AddLink(4, 0, nvml.TwoNVLINKLinks)
-	node.AddLink(4, 5, nvml.SingleNVLINKLink)
-	node.AddLink(4, 6, nvml.SingleNVLINKLink)
-	node.AddLink(4, 7, nvml.TwoNVLINKLinks)
+	node.AddLink(4, 0, gpulib.TwoNVLINKLinks)
+	node.AddLink(4, 5, gpulib.SingleNVLINKLink)
+	node.AddLink(4, 6, gpulib.SingleNVLINKLink)
+	node.AddLink(4, 7, gpulib.TwoNVLINKLinks)
 
-	node.AddLink(5, 1, nvml.TwoNVLINKLinks)
-	node.AddLink(5, 4, nvml.SingleNVLINKLink)
-	node.AddLink(5, 6, nvml.TwoNVLINKLinks)
-	node.AddLink(5, 7, nvml.SingleNVLINKLink)
+	node.AddLink(5, 1, gpulib.TwoNVLINKLinks)
+	node.AddLink(5, 4, gpulib.SingleNVLINKLink)
+	node.AddLink(5, 6, gpulib.TwoNVLINKLinks)
+	node.AddLink(5, 7, gpulib.SingleNVLINKLink)
 
-	node.AddLink(6, 2, nvml.SingleNVLINKLink)
-	node.AddLink(6, 4, nvml.SingleNVLINKLink)
-	node.AddLink(6, 5, nvml.TwoNVLINKLinks)
-	node.AddLink(6, 7, nvml.TwoNVLINKLinks)
+	node.AddLink(6, 2, gpulib.SingleNVLINKLink)
+	node.AddLink(6, 4, gpulib.SingleNVLINKLink)
+	node.AddLink(6, 5, gpulib.TwoNVLINKLinks)
+	node.AddLink(6, 7, gpulib.TwoNVLINKLinks)
 
-	node.AddLink(7, 3, nvml.SingleNVLINKLink)
-	node.AddLink(7, 4, nvml.TwoNVLINKLinks)
-	node.AddLink(7, 5, nvml.SingleNVLINKLink)
-	node.AddLink(7, 6, nvml.TwoNVLINKLinks)
+	node.AddLink(7, 3, gpulib.SingleNVLINKLink)
+	node.AddLink(7, 4, gpulib.TwoNVLINKLinks)
+	node.AddLink(7, 5, gpulib.SingleNVLINKLink)
+	node.AddLink(7, 6, gpulib.TwoNVLINKLinks)
 
 	// P2PLinks
-	node.AddLink(0, 1, nvml.P2PLinkSingleSwitch)
-	node.AddLink(0, 2, nvml.P2PLinkHostBridge)
-	node.AddLink(0, 3, nvml.P2PLinkHostBridge)
-	node.AddLink(0, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(0, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(0, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(0, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(0, 1, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(0, 2, gpulib.P2PLinkHostBridge)
+	node.AddLink(0, 3, gpulib.P2PLinkHostBridge)
+	node.AddLink(0, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(0, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(0, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(0, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(1, 0, nvml.P2PLinkSingleSwitch)
-	node.AddLink(1, 2, nvml.P2PLinkHostBridge)
-	node.AddLink(1, 3, nvml.P2PLinkHostBridge)
-	node.AddLink(1, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(1, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(1, 0, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(1, 2, gpulib.P2PLinkHostBridge)
+	node.AddLink(1, 3, gpulib.P2PLinkHostBridge)
+	node.AddLink(1, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(1, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(2, 0, nvml.P2PLinkHostBridge)
-	node.AddLink(2, 1, nvml.P2PLinkHostBridge)
-	node.AddLink(2, 3, nvml.P2PLinkSingleSwitch)
-	node.AddLink(2, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(2, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(2, 0, gpulib.P2PLinkHostBridge)
+	node.AddLink(2, 1, gpulib.P2PLinkHostBridge)
+	node.AddLink(2, 3, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(2, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(2, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(3, 0, nvml.P2PLinkHostBridge)
-	node.AddLink(3, 1, nvml.P2PLinkHostBridge)
-	node.AddLink(3, 2, nvml.P2PLinkSingleSwitch)
-	node.AddLink(3, 4, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 5, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 6, nvml.P2PLinkCrossCPU)
-	node.AddLink(3, 7, nvml.P2PLinkCrossCPU)
+	node.AddLink(3, 0, gpulib.P2PLinkHostBridge)
+	node.AddLink(3, 1, gpulib.P2PLinkHostBridge)
+	node.AddLink(3, 2, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(3, 4, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 5, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 6, gpulib.P2PLinkCrossCPU)
+	node.AddLink(3, 7, gpulib.P2PLinkCrossCPU)
 
-	node.AddLink(4, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(4, 5, nvml.P2PLinkSingleSwitch)
-	node.AddLink(4, 6, nvml.P2PLinkHostBridge)
-	node.AddLink(4, 7, nvml.P2PLinkHostBridge)
+	node.AddLink(4, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(4, 5, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(4, 6, gpulib.P2PLinkHostBridge)
+	node.AddLink(4, 7, gpulib.P2PLinkHostBridge)
 
-	node.AddLink(5, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(5, 4, nvml.P2PLinkSingleSwitch)
-	node.AddLink(5, 6, nvml.P2PLinkHostBridge)
-	node.AddLink(5, 7, nvml.P2PLinkHostBridge)
+	node.AddLink(5, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(5, 4, gpulib.P2PLinkSingleSwitch)
+	node.AddLink(5, 6, gpulib.P2PLinkHostBridge)
+	node.AddLink(5, 7, gpulib.P2PLinkHostBridge)
 
-	node.AddLink(6, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(6, 4, nvml.P2PLinkHostBridge)
-	node.AddLink(6, 5, nvml.P2PLinkHostBridge)
-	node.AddLink(6, 7, nvml.P2PLinkSingleSwitch)
+	node.AddLink(6, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(6, 4, gpulib.P2PLinkHostBridge)
+	node.AddLink(6, 5, gpulib.P2PLinkHostBridge)
+	node.AddLink(6, 7, gpulib.P2PLinkSingleSwitch)
 
-	node.AddLink(7, 0, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 1, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 2, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 3, nvml.P2PLinkCrossCPU)
-	node.AddLink(7, 4, nvml.P2PLinkHostBridge)
-	node.AddLink(7, 5, nvml.P2PLinkHostBridge)
-	node.AddLink(7, 6, nvml.P2PLinkSingleSwitch)
+	node.AddLink(7, 0, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 1, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 2, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 3, gpulib.P2PLinkCrossCPU)
+	node.AddLink(7, 4, gpulib.P2PLinkHostBridge)
+	node.AddLink(7, 5, gpulib.P2PLinkHostBridge)
+	node.AddLink(7, 6, gpulib.P2PLinkSingleSwitch)
 
 	return node
 }

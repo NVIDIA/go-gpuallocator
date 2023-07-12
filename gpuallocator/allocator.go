@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-gpuallocator/internal/gpulib"
 )
 
 // Allocator defines the primary object for allocating and freeing the
@@ -45,9 +45,9 @@ func NewBestEffortAllocator() (*Allocator, error) {
 
 // NewAllocator creates a new Allocator using the given allocation policy
 func NewAllocator(policy Policy) (*Allocator, error) {
-	err := nvml.Init()
-	if err != nil {
-		return nil, fmt.Errorf("error initializing NVML: %v", err)
+	ret := gpulib.Init()
+	if ret.Value() != gpulib.SUCCESS {
+		return nil, fmt.Errorf("error initializing gpulib: %v", ret.Error())
 	}
 
 	devices, err := NewDevices()
@@ -58,8 +58,8 @@ func NewAllocator(policy Policy) (*Allocator, error) {
 	allocator := newAllocatorFrom(devices, policy)
 
 	runtime.SetFinalizer(allocator, func(allocator *Allocator) {
-		// Explicitly ignore any errors from nvml.Shutdown().
-		_ = nvml.Shutdown()
+		// Explicitly ignore any errors from gpulib.Shutdown().
+		_ = gpulib.Shutdown()
 	})
 
 	return allocator, nil

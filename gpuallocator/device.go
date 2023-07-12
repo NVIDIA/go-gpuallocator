@@ -4,16 +4,17 @@ package gpuallocator
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-gpuallocator/internal/gpulib"
 )
 
-// Device represents a GPU device as reported by NVML, including all of its
+// Device represents a GPU device as reported by gpulib, including all of its
 // Point-to-Point link information.
 type Device struct {
-	*nvml.Device
+	gpulib.DeviceLite
 	Index int
 	Links map[int][]P2PLink
 }
@@ -23,45 +24,50 @@ type Device struct {
 // contained in the P2PLink struct itself.
 type P2PLink struct {
 	GPU  *Device
-	Type nvml.P2PLinkType
+	Type gpulib.P2PLinkType
 }
 
 // DeviceSet is used to hold and manipulate a set of unique GPU devices.
 type DeviceSet map[string]*Device
 
-// NewDevices creates a list of Devices from all available nvml.Devices.
+// NewDevices creates a list of Devices from all available gpulib.Devices.
 func NewDevices() ([]*Device, error) {
-	count, err := nvml.GetDeviceCount()
-	if err != nil {
-		return nil, fmt.Errorf("error calling nvml.GetDeviceCount: %v", err)
+	count, ret := gpulib.DeviceGetCount()
+	if ret.Value() != gpulib.SUCCESS {
+		return nil, fmt.Errorf("error calling gpulib.GetDeviceCount: %v", ret.Error())
 	}
 
 	devices := []*Device{}
-	for i := 0; i < int(count); i++ {
-		device, err := nvml.NewDevice(uint(i))
-		if err != nil {
-			return nil, fmt.Errorf("error creating nvml.Device %v: %v", i, err)
+	for i := 0; i < count; i++ {
+		gpulibDevice, ret := gpulib.NewDeviceLite(i)
+		if ret.Value() != gpulib.SUCCESS {
+			return nil, fmt.Errorf("error creating gpulib.Device %v: %v", i, ret.Error())
 		}
 
-		devices = append(devices, &Device{device, i, make(map[int][]P2PLink)})
+		device := Device{
+			DeviceLite: gpulibDevice,
+			Index:      i,
+			Links:      make(map[int][]P2PLink),
+		}
+		devices = append(devices, &device)
 	}
 
 	for i, d1 := range devices {
 		for j, d2 := range devices {
 			if d1 != d2 {
-				p2plink, err := nvml.GetP2PLink(d1.Device, d2.Device)
+				p2plink, err := gpulib.GetP2PLink(d1, d2)
 				if err != nil {
 					return nil, fmt.Errorf("error getting P2PLink for devices (%v, %v): %v", i, j, err)
 				}
-				if p2plink != nvml.P2PLinkUnknown {
+				if p2plink != gpulib.P2PLinkUnknown {
 					d1.Links[d2.Index] = append(d1.Links[d2.Index], P2PLink{d2, p2plink})
 				}
 
-				nvlink, err := nvml.GetNVLink(d1.Device, d2.Device)
+				nvlink, err := gpulib.GetNVLink(d1, d2)
 				if err != nil {
 					return nil, fmt.Errorf("error getting NVLink for devices (%v, %v): %v", i, j, err)
 				}
-				if nvlink != nvml.P2PLinkUnknown {
+				if nvlink != gpulib.P2PLinkUnknown {
 					d1.Links[d2.Index] = append(d1.Links[d2.Index], P2PLink{d2, nvlink})
 				}
 			}
@@ -79,14 +85,21 @@ func NewDevicesFrom(uuids []string) ([]*Device, error) {
 	}
 
 	filtered := []*Device{}
+
+	found := make(map[string]bool)
 	for _, uuid := range uuids {
 		for _, device := range devices {
-			if device.UUID == uuid {
+			id, ret := device.GetUUID()
+			if ret.Value() != gpulib.SUCCESS {
+				return nil, fmt.Errorf("failed to get device UUID: %v", ret.Error())
+			}
+			if id == uuid {
 				filtered = append(filtered, device)
+				found[id] = true
 				break
 			}
 		}
-		if len(filtered) == 0 || filtered[len(filtered)-1].UUID != uuid {
+		if len(filtered) == 0 || !found[uuid] {
 			return nil, fmt.Errorf("no device with uuid: %v", uuid)
 		}
 	}
@@ -101,11 +114,24 @@ func (d *Device) String() string {
 
 // Details returns all details of a Device as a multi-line string.
 func (d *Device) Details() string {
+	uuid, ret := d.GetUUID()
+	if ret.Value() != gpulib.SUCCESS {
+		uuid = "UNKNOWN"
+	}
+
+	var pciBusID string
+	pciInfo, ret := d.GetPciInfo()
+	if ret.Value() != gpulib.SUCCESS {
+		pciBusID = "UNKNOWN"
+	} else {
+		pciBusID = gpulib.NewPCIBusID(pciInfo).String()
+	}
+
 	s := ""
 	s += fmt.Sprintf("Device %v:\n", d.Index)
-	s += fmt.Sprintf("  UUID: %v\n", d.UUID)
-	s += fmt.Sprintf("  PCI BusID: %v\n", d.PCI.BusID)
-	s += fmt.Sprintf("  SocketAffinity: %v\n", *d.CPUAffinity)
+	s += fmt.Sprintf("  UUID: %v\n", uuid)
+	s += fmt.Sprintf("  PCI BusID: %v\n", pciBusID)
+	s += fmt.Sprintf("  SocketAffinity: %v\n", d.CPUAffinity())
 	s += fmt.Sprintf("  Topology: \n")
 	for gpu, links := range d.Links {
 		s += fmt.Sprintf("    GPU %v Links:\n", gpu)
@@ -115,6 +141,14 @@ func (d *Device) Details() string {
 	}
 
 	return strings.TrimSuffix(s, "\n")
+}
+
+func (d Device) uuidOrPanic() string {
+	uuid, ret := d.GetUUID()
+	if ret.Value() != gpulib.SUCCESS {
+		log.Panicf("could not get UUID for device: %v\n", ret.Error())
+	}
+	return uuid
 }
 
 // NewDeviceSet creates a new DeviceSet.
@@ -127,14 +161,16 @@ func NewDeviceSet(devices ...*Device) DeviceSet {
 // Insert inserts a list of devices into a DeviceSet.
 func (ds DeviceSet) Insert(devices ...*Device) {
 	for _, device := range devices {
-		ds[device.UUID] = device
+		uuid := device.uuidOrPanic()
+		ds[uuid] = device
 	}
 }
 
 // Delete deletes a list of devices from a DeviceSet.
 func (ds DeviceSet) Delete(devices ...*Device) {
 	for _, device := range devices {
-		delete(ds, device.UUID)
+		uuid := device.uuidOrPanic()
+		delete(ds, uuid)
 	}
 }
 
@@ -144,7 +180,8 @@ func (ds DeviceSet) Contains(device *Device) bool {
 		return false
 	}
 
-	_, ok := ds[device.UUID]
+	uuid := device.uuidOrPanic()
+	_, ok := ds[uuid]
 	return ok
 }
 

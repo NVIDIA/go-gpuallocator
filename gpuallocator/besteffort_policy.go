@@ -1,11 +1,25 @@
-// Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+/**
+# Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+**/
 
 package gpuallocator
 
 import (
 	"fmt"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-gpuallocator/internal/gpulib"
 )
 
 type bestEffortPolicy struct{}
@@ -313,41 +327,41 @@ func calculateGPUPairScore(gpu0 *Device, gpu1 *Device) int {
 
 	for _, link := range gpu0.Links[gpu1.Index] {
 		switch link.Type {
-		case nvml.P2PLinkCrossCPU:
+		case gpulib.P2PLinkCrossCPU:
 			score += 10
-		case nvml.P2PLinkSameCPU:
+		case gpulib.P2PLinkSameCPU:
 			score += 20
-		case nvml.P2PLinkHostBridge:
+		case gpulib.P2PLinkHostBridge:
 			score += 30
-		case nvml.P2PLinkMultiSwitch:
+		case gpulib.P2PLinkMultiSwitch:
 			score += 40
-		case nvml.P2PLinkSingleSwitch:
+		case gpulib.P2PLinkSingleSwitch:
 			score += 50
-		case nvml.P2PLinkSameBoard:
+		case gpulib.P2PLinkSameBoard:
 			score += 60
-		case nvml.SingleNVLINKLink:
+		case gpulib.SingleNVLINKLink:
 			score += 100
-		case nvml.TwoNVLINKLinks:
+		case gpulib.TwoNVLINKLinks:
 			score += 200
-		case nvml.ThreeNVLINKLinks:
+		case gpulib.ThreeNVLINKLinks:
 			score += 300
-		case nvml.FourNVLINKLinks:
+		case gpulib.FourNVLINKLinks:
 			score += 400
-		case nvml.FiveNVLINKLinks:
+		case gpulib.FiveNVLINKLinks:
 			score += 500
-		case nvml.SixNVLINKLinks:
+		case gpulib.SixNVLINKLinks:
 			score += 600
-		case nvml.SevenNVLINKLinks:
+		case gpulib.SevenNVLINKLinks:
 			score += 700
-		case nvml.EightNVLINKLinks:
+		case gpulib.EightNVLINKLinks:
 			score += 800
-		case nvml.NineNVLINKLinks:
+		case gpulib.NineNVLINKLinks:
 			score += 900
-		case nvml.TenNVLINKLinks:
+		case gpulib.TenNVLINKLinks:
 			score += 1000
-		case nvml.ElevenNVLINKLinks:
+		case gpulib.ElevenNVLINKLinks:
 			score += 1100
-		case nvml.TwelveNVLINKLinks:
+		case gpulib.TwelveNVLINKLinks:
 			score += 1200
 		}
 	}

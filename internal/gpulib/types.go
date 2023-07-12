@@ -1,4 +1,5 @@
-# Copyright (c) NVIDIA CORPORATION.  All rights reserved.
+/**
+# Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,8 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-ARG GOLANG_VERSION=1.20
-FROM golang:${GOLANG_VERSION}
+**/
 
-RUN go install golang.org/x/lint/golint@latest
-RUN go install github.com/matryer/moq@latest
+package gpulib
+
+import (
+	"github.com/NVIDIA/go-nvml/pkg/nvml"
+)
+
+type DeviceAttributes nvml.DeviceAttributes
+type GpuTopologyLevel nvml.GpuTopologyLevel
+type EnableState nvml.EnableState
+type PciInfo nvml.PciInfo

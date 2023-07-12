@@ -1,2 +1,8 @@
 github.com/NVIDIA/go-nvml v0.12.0-1 h1:6mdjtlFo+17dWL7VFPfuRMtf0061TF4DKls9pkSw6uM=
 github.com/NVIDIA/go-nvml v0.12.0-1/go.mod h1:hy7HYeQy335x6nEss0Ne3PYqleRa6Ct+VKD9RQ4nyFs=
+github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
+gitlab.com/nvidia/cloud-native/go-nvlib v0.0.0-20230711114409-e6fcecfa6790 h1:seMiNJ+XnvRr3QZ4Q4mv4AfiGd94rYKUVJyPqU/qGRM=
+gitlab.com/nvidia/cloud-native/go-nvlib v0.0.0-20230711114409-e6fcecfa6790/go.mod h1:KYZksBgh18o+uzgnpDazzG4LVYtnfB96VXHMXypEtik=
+gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=

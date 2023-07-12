@@ -25,7 +25,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/NVIDIA/go-nvml/pkg/nvml"
+	"gitlab.com/nvidia/cloud-native/go-nvlib/pkg/nvml"
 )
 
 type DeviceLite interface {

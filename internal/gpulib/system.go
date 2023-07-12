@@ -17,7 +17,7 @@
 package gpulib
 
 import (
-	"github.com/NVIDIA/go-nvml/pkg/nvml"
+	"gitlab.com/nvidia/cloud-native/go-nvlib/pkg/nvml"
 )
 
 func Init() Return {

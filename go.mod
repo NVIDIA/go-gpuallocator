@@ -2,7 +2,10 @@ module github.com/NVIDIA/go-gpuallocator
 
 go 1.20
 
-require github.com/NVIDIA/go-nvml v0.12.0-1
+require (
+	github.com/NVIDIA/go-nvml v0.12.0-1
+	gitlab.com/nvidia/cloud-native/go-nvlib v0.0.0-20230711114409-e6fcecfa6790
+)
 
 replace (
 	k8s.io/api => k8s.io/api v0.18.2

@@ -5,7 +5,9 @@ package gpuallocator
 import (
 	"fmt"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	// TODO: We rename this import to reduce the changes required below.
+	// This can be removed once the link-specifics have been migrated into go-nvlib.
+	nvml "github.com/NVIDIA/go-gpuallocator/internal/links"
 )
 
 type bestEffortPolicy struct{}

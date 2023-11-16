@@ -45,6 +45,12 @@ const (
 	TenNVLINKLinks
 	ElevenNVLINKLinks
 	TwelveNVLINKLinks
+	ThirteenNVLINKLinks
+	FourteenNVLINKLinks
+	FifteenNVLINKLinks
+	SixteenNVLINKLinks
+	SeventeenNVLINKLinks
+	EighteenNVLINKLinks
 )
 
 // GetP2PLink gets the peer-to-peer connectivity between two devices.
@@ -116,6 +122,18 @@ func GetNVLink(dev1 device.Device, dev2 device.Device) (P2PLinkType, error) {
 			nvlink = ElevenNVLINKLinks
 		case ElevenNVLINKLinks:
 			nvlink = TwelveNVLINKLinks
+		case TwelveNVLINKLinks:
+			nvlink = ThirteenNVLINKLinks
+		case ThirteenNVLINKLinks:
+			nvlink = FourteenNVLINKLinks
+		case FourteenNVLINKLinks:
+			nvlink = FifteenNVLINKLinks
+		case FifteenNVLINKLinks:
+			nvlink = SixteenNVLINKLinks
+		case SixteenNVLINKLinks:
+			nvlink = SeventeenNVLINKLinks
+		case SeventeenNVLINKLinks:
+			nvlink = EighteenNVLINKLinks
 		}
 	}
 	// TODO(klueska): Handle NVSwitch semantics

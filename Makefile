@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MODULE := github.com/nvidia/go-gpuallocator
+MODULE := github.com/NVIDIA/go-gpuallocator
 
 DOCKER ?= docker
 

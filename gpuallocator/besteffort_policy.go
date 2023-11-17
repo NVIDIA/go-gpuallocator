@@ -5,7 +5,9 @@ package gpuallocator
 import (
 	"fmt"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	// TODO: We rename this import to reduce the changes required below.
+	// This can be removed once the link-specifics have been migrated into go-nvlib.
+	nvml "github.com/NVIDIA/go-gpuallocator/internal/links"
 )
 
 type bestEffortPolicy struct{}
@@ -349,6 +351,18 @@ func calculateGPUPairScore(gpu0 *Device, gpu1 *Device) int {
 			score += 1100
 		case nvml.TwelveNVLINKLinks:
 			score += 1200
+		case nvml.ThirteenNVLINKLinks:
+			score += 1300
+		case nvml.FourteenNVLINKLinks:
+			score += 1400
+		case nvml.FifteenNVLINKLinks:
+			score += 1500
+		case nvml.SixteenNVLINKLinks:
+			score += 1600
+		case nvml.SeventeenNVLINKLinks:
+			score += 1700
+		case nvml.EighteenNVLINKLinks:
+			score += 1800
 		}
 	}
 

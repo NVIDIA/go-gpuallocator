@@ -7,7 +7,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	// TODO: We rename this import to reduce the changes required below.
+	// This can be removed once the link-specifics have been migrated into go-nvlib.
+	nvml "github.com/NVIDIA/go-gpuallocator/internal/links"
 )
 
 const pad = ^int(0)
@@ -110,13 +112,11 @@ func RunPolicyAllocTests(t *testing.T, policy Policy, tests []PolicyAllocTest) {
 
 func NewTestGPU(index int) *TestGPU {
 	return &TestGPU{
-		Index: index,
-		Device: &nvml.Device{
+		nvlibDevice: nvlibDevice{
 			UUID: fmt.Sprintf("GPU-%d", index),
-			PCI: nvml.PCIInfo{
-				BusID: fmt.Sprintf("GPU-%d", index),
-			},
+			PCI:  struct{ BusID string }{fmt.Sprintf("GPU-%d", index)},
 		},
+		Index: index,
 		Links: make(map[int][]P2PLink),
 	}
 }

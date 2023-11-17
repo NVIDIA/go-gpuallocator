@@ -4,6 +4,8 @@ go 1.20
 
 require github.com/NVIDIA/go-nvlib v0.0.0-20231116150931-9fd385bace0d
 
+require github.com/NVIDIA/go-nvml v0.12.0-1.0.20231020145430-e06766c5e74f // indirect
+
 replace (
 	k8s.io/api => k8s.io/api v0.18.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.2

@@ -72,7 +72,7 @@ type DeviceList []*Device
 type DeviceSet map[string]*Device
 
 // NewDevices creates a list of Devices from all available nvml.Devices using the specified options.
-func NewDevices(opts ...deviceListOption) (DeviceList, error) {
+func NewDevices(opts ...Option) (DeviceList, error) {
 	o := &deviceListBuilder{}
 	for _, opt := range opts {
 		opt(o)

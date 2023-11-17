@@ -23,8 +23,11 @@ import (
 	"github.com/NVIDIA/go-nvlib/pkg/nvml"
 )
 
+// P2PLinkType defines the link information between two devices.
 type P2PLinkType uint
 
+// The following constants define the nature of a link between two devices.
+// These include peer-2-peer and NVLink information.
 const (
 	P2PLinkUnknown P2PLinkType = iota
 	P2PLinkCrossCPU
@@ -90,11 +93,11 @@ func GetNVLink(dev1 device.Device, dev2 device.Device) (P2PLinkType, error) {
 	if ret != nvml.SUCCESS {
 		return P2PLinkUnknown, fmt.Errorf("failed to get pci info: %v", ret)
 	}
-	dev2BusId := PciInfo(dev2PciInfo).BusID()
+	dev2BusID := PciInfo(dev2PciInfo).BusID()
 
 	nvlink := P2PLinkUnknown
 	for _, pciInfo := range pciInfos {
-		if pciInfo.BusID() == dev2BusId {
+		if pciInfo.BusID() == dev2BusID {
 			continue
 		}
 		switch nvlink {

@@ -27,17 +27,18 @@ type deviceListBuilder struct {
 	devicelib device.Interface
 }
 
-type deviceListOption func(*deviceListBuilder)
+// Option defines a type for functional options for constructing device lists.
+type Option func(*deviceListBuilder)
 
 // WithNvmlLib provides an option to set the nvml library.
-func WithNvmlLib(nvmllib nvml.Interface) deviceListOption {
+func WithNvmlLib(nvmllib nvml.Interface) Option {
 	return func(o *deviceListBuilder) {
 		o.nvmllib = nvmllib
 	}
 }
 
 // WithDeviceLib provides an option to set the library used for device enumeration.
-func WithDeviceLib(devicelib device.Interface) deviceListOption {
+func WithDeviceLib(devicelib device.Interface) Option {
 	return func(o *deviceListBuilder) {
 		o.devicelib = devicelib
 	}

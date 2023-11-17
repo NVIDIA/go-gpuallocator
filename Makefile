@@ -16,7 +16,7 @@ MODULE := github.com/nvidia/go-gpuallocator
 
 DOCKER ?= docker
 
-GOLANG_VERSION := 1.15
+GOLANG_VERSION := 1.20.4
 
 ifeq ($(IMAGE),)
 REGISTRY ?= nvidia

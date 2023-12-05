@@ -97,7 +97,7 @@ func GetNVLink(dev1 device.Device, dev2 device.Device) (P2PLinkType, error) {
 
 	nvlink := P2PLinkUnknown
 	for _, pciInfo := range pciInfos {
-		if pciInfo.BusID() == dev2BusID {
+		if pciInfo.BusID() != dev2BusID {
 			continue
 		}
 		switch nvlink {

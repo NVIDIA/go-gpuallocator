@@ -110,6 +110,14 @@ func TestBestEffortAllocate(t *testing.T) {
 			4,
 			[]int{},
 		},
+		{
+			"Required too many devices than available",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5},
+			[]int{1, 2, 3, 4, 5, 6},
+			1,
+			[]int{},
+		},
 	}
 
 	RunPolicyAllocTests(t, policy, tests)

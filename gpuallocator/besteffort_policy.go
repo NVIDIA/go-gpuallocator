@@ -50,6 +50,29 @@ func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, siz
 		return []*Device{}
 	}
 
+	// Optimize for the case when we required is actually the `size`.
+	if size == len(required) {
+		if gpuPartitionContainsSetWithAll([][]*Device{available}, required) {
+			return required
+		} else {
+			return []*Device{}
+		}
+	}
+
+	// Optimize for the case when size == 1.
+	// We'll pick the device with the minimum sum of scores with available devices.
+	if size == 1 {
+		var bestDevice *Device
+		var minScore int
+		iterateGPUSetScore(available, func(score int, index int) {
+			if score < minScore || bestDevice == nil {
+				minScore = score
+				bestDevice = available[index]
+			}
+		})
+		return []*Device{bestDevice}
+	}
+
 	// Find the highest scoring GPU partition with sets of of size 'size'.
 	// Don't consider partitions that don't have at least one set that contains
 	// all of the GPUs 'required' by the allocation.
@@ -221,14 +244,6 @@ func iterateGPUPartitions(devices []*Device, size int, callback func([][]*Device
 		return
 	}
 
-	// Optimize for the case when size == 1.
-	if size == 1 {
-		for _, device := range devices {
-			callback([][]*Device{{device}})
-		}
-		return
-	}
-
 	// Otherwise, pad the list of available GPUs on the node such that the list
 	// can be evenly partitioned into subsets of size 'size'. This is necessary
 	// to ensure that the recursive solution does not exit early and actually
@@ -395,4 +410,17 @@ func calculateGPUPartitionScore(gpuPartition [][]*Device) int {
 	}
 
 	return score
+}
+
+func iterateGPUSetScore(gpuSet []*Device, callback func(int, int)) {
+	for i := range gpuSet {
+		score := 0
+		for j := range gpuSet {
+			if i == j {
+				continue
+			}
+			score += calculateGPUPairScore(gpuSet[i], gpuSet[j])
+		}
+		callback(score, i)
+	}
 }

@@ -118,6 +118,38 @@ func TestBestEffortAllocate(t *testing.T) {
 			1,
 			[]int{},
 		},
+		{
+			"Required devices is equal to the size",
+			devices,
+			[]int{0, 1, 2, 4, 5, 6},
+			[]int{0, 1, 2, 5},
+			4,
+			[]int{0, 1, 2, 5},
+		},
+		{
+			"Required 1 device exists",
+			devices,
+			[]int{0, 1, 2, 4, 5, 6},
+			[]int{2},
+			1,
+			[]int{2},
+		},
+		{
+			"Required 1 device not exists",
+			devices,
+			[]int{0, 1, 2, 4, 5, 6},
+			[]int{3},
+			1,
+			[]int{},
+		},
+		{
+			"Required 1 best effort device",
+			devices,
+			[]int{0, 1, 2},
+			[]int{},
+			1,
+			[]int{0},
+		},
 	}
 
 	RunPolicyAllocTests(t, policy, tests)

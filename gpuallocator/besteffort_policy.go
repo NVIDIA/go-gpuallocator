@@ -52,11 +52,10 @@ func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, siz
 
 	// Optimize for the case when we required is actually the `size`.
 	if size == len(required) {
-		if gpuPartitionContainsSetWithAll([][]*Device{available}, required) {
+		if gpuSetContainsAll(available, required) {
 			return required
-		} else {
-			return []*Device{}
 		}
+		return []*Device{}
 	}
 
 	// Optimize for the case when size == 1.

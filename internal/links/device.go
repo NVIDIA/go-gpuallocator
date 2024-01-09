@@ -205,23 +205,23 @@ func getAllNvLinkRemotePciInfo(dev device.Device) ([]PciInfo, error) {
 	var pciInfos []PciInfo
 	for i := 0; i < nvml.NVLINK_MAX_LINKS; i++ {
 		state, ret := dev.GetNvLinkState(i)
-		if ret == nvml.ERROR_NOT_SUPPORTED {
+		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT {
 			continue
 		}
 		if ret != nvml.SUCCESS {
 			return nil, fmt.Errorf("failed to get nvlink state: %v", ret)
 		}
-
-		if state == nvml.FEATURE_ENABLED {
-			pciInfo, ret := dev.GetNvLinkRemotePciInfo(i)
-			if ret == nvml.ERROR_NOT_SUPPORTED {
-				continue
-			}
-			if ret != nvml.SUCCESS {
-				return nil, fmt.Errorf("failed to get remote pci info: %v", ret)
-			}
-			pciInfos = append(pciInfos, PciInfo(pciInfo))
+		if state != nvml.FEATURE_ENABLED {
+			continue
 		}
+		pciInfo, ret := dev.GetNvLinkRemotePciInfo(i)
+		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT {
+			continue
+		}
+		if ret != nvml.SUCCESS {
+			return nil, fmt.Errorf("failed to get remote pci info: %v", ret)
+		}
+		pciInfos = append(pciInfos, PciInfo(pciInfo))
 	}
 
 	return pciInfos, nil

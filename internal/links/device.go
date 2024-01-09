@@ -56,6 +56,62 @@ const (
 	EighteenNVLINKLinks
 )
 
+// String returns the string representation of the P2PLink type.
+func (l P2PLinkType) String() string {
+	switch l {
+	case P2PLinkCrossCPU:
+		return "P2PLinkCrossCPU"
+	case P2PLinkSameCPU:
+		return "P2PLinkSameCPU"
+	case P2PLinkHostBridge:
+		return "P2PLinkHostBridge"
+	case P2PLinkMultiSwitch:
+		return "P2PLinkMultiSwitch"
+	case P2PLinkSingleSwitch:
+		return "P2PLinkSingleSwitch"
+	case P2PLinkSameBoard:
+		return "P2PLinkSameBoard"
+	case SingleNVLINKLink:
+		return "SingleNVLINKLink"
+	case TwoNVLINKLinks:
+		return "TwoNVLINKLinks"
+	case ThreeNVLINKLinks:
+		return "ThreeNVLINKLinks"
+	case FourNVLINKLinks:
+		return "FourNVLINKLinks"
+	case FiveNVLINKLinks:
+		return "FiveNVLINKLinks"
+	case SixNVLINKLinks:
+		return "SixNVLINKLinks"
+	case SevenNVLINKLinks:
+		return "SevenNVLINKLinks"
+	case EightNVLINKLinks:
+		return "EightNVLINKLinks"
+	case NineNVLINKLinks:
+		return "NineNVLINKLinks"
+	case TenNVLINKLinks:
+		return "TenNVLINKLinks"
+	case ElevenNVLINKLinks:
+		return "ElevenNVLINKLinks"
+	case TwelveNVLINKLinks:
+		return "TwelveNVLINKLinks"
+	case ThirteenNVLINKLinks:
+		return "ThirteenNVLINKLinks"
+	case FourteenNVLINKLinks:
+		return "FourteenNVLINKLinks"
+	case FifteenNVLINKLinks:
+		return "FifteenNVLINKLinks"
+	case SixteenNVLINKLinks:
+		return "SixteenNVLINKLinks"
+	case SeventeenNVLINKLinks:
+		return "SeventeenNVLINKLinks"
+	case EighteenNVLINKLinks:
+		return "EighteenNVLINKLinks"
+	default:
+		return fmt.Sprintf("UNKOWN (%v)", uint(l))
+	}
+}
+
 // GetP2PLink gets the peer-to-peer connectivity between two devices.
 func GetP2PLink(dev1 device.Device, dev2 device.Device) (P2PLinkType, error) {
 	level, ret := dev1.GetTopologyCommonAncestor(dev2)

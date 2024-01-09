@@ -1,4 +1,4 @@
-# github.com/NVIDIA/go-nvlib v0.0.0-20231116150931-9fd385bace0d
+# github.com/NVIDIA/go-nvlib v0.0.0-20240109130712-11603560817a
 ## explicit; go 1.20
 github.com/NVIDIA/go-nvlib/pkg/nvlib/device
 github.com/NVIDIA/go-nvlib/pkg/nvml
@@ -6,6 +6,9 @@ github.com/NVIDIA/go-nvlib/pkg/nvml
 ## explicit; go 1.15
 github.com/NVIDIA/go-nvml/pkg/dl
 github.com/NVIDIA/go-nvml/pkg/nvml
+# github.com/google/uuid v1.4.0
+## explicit
+github.com/google/uuid
 # k8s.io/api => k8s.io/api v0.18.2
 # k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.2
 # k8s.io/apimachinery => k8s.io/apimachinery v0.18.2

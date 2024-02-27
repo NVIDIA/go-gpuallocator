@@ -58,13 +58,15 @@ func TestDeviceListFilter(t *testing.T) {
 		expectedError      error
 	}{
 		{
-			description: "nil uuids returns empty list",
-			nvmllib:     singleDeviceNVML,
+			description:        "nil uuids returns empty list",
+			nvmllib:            singleDeviceNVML,
+			expectedDeviceList: DeviceList{},
 		},
 		{
-			description: "empty uuids returns empty list",
-			uuids:       []string{},
-			nvmllib:     singleDeviceNVML,
+			description:        "empty uuids returns empty list",
+			uuids:              []string{},
+			nvmllib:            singleDeviceNVML,
+			expectedDeviceList: DeviceList{},
 		},
 	}
 

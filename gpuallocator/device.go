@@ -78,7 +78,7 @@ func NewDevices(opts ...Option) (DeviceList, error) {
 		opt(o)
 	}
 	if o.nvmllib == nil {
-		o.nvmllib = nvml.New()
+		o.nvmllib = nvmlNew()
 	}
 	if o.devicelib == nil {
 		o.devicelib = device.New(
@@ -253,4 +253,9 @@ func (ds DeviceSet) SortedSlice() []*Device {
 	})
 
 	return devices
+}
+
+// nvmlNew is implemented as a function here to allow for this to be replaced for testing.
+var nvmlNew = func() nvml.Interface {
+	return nvml.New()
 }

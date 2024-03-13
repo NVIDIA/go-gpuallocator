@@ -25,7 +25,7 @@ endif
 IMAGE_TAG ?= $(GOLANG_VERSION)
 BUILDIMAGE ?= $(IMAGE):$(IMAGE_TAG)-devel
 
-TARGETS := binary build all check fmt assert-fmt generate lint vet test coverage
+TARGETS := binary build all check fmt assert-fmt generate test coverage golangci-lint
 DOCKER_TARGETS := $(patsubst %, docker-%, $(TARGETS))
 .PHONY: $(TARGETS) $(DOCKER_TARGETS)
 
@@ -35,7 +35,7 @@ build:
 	GOOS=$(GOOS) go build ./...
 
 all: check build binary
-check: assert-fmt lint vet
+check: golangci-lint
 
 # Apply go fmt to the codebase
 fmt:
@@ -57,12 +57,8 @@ assert-fmt:
 generate:
 	go generate $(MODULE)/...
 
-lint:
-	# We use `go list -f '{{.Dir}}' $(MODULE)/...` to skip the `vendor` folder.
-	go list -f '{{.Dir}}' $(MODULE)/... | grep -v pkg/nvml | xargs golint -set_exit_status
-
-vet:
-	go vet $(MODULE)/...
+golangci-lint:
+	golangci-lint run ./...
 
 COVERAGE_FILE := coverage.out
 test: build

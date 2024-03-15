@@ -1,15 +1,15 @@
-# github.com/NVIDIA/go-nvlib v0.0.0-20240109130712-11603560817a
+# github.com/NVIDIA/go-nvlib v0.1.1
 ## explicit; go 1.20
 github.com/NVIDIA/go-nvlib/pkg/nvlib/device
 github.com/NVIDIA/go-nvlib/pkg/nvml
-# github.com/NVIDIA/go-nvml v0.12.0-1.0.20231020145430-e06766c5e74f
+# github.com/NVIDIA/go-nvml v0.12.0-2
 ## explicit; go 1.15
 github.com/NVIDIA/go-nvml/pkg/dl
 github.com/NVIDIA/go-nvml/pkg/nvml
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/google/uuid v1.4.0
+# github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
 # github.com/pmezard/go-difflib v1.0.0

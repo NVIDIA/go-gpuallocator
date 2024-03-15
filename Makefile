@@ -12,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MODULE := github.com/NVIDIA/go-gpuallocator
-
 DOCKER ?= docker
 
-GOLANG_VERSION := 1.20.4
+include $(CURDIR)/versions.mk
 
-ifeq ($(IMAGE),)
-REGISTRY ?= nvidia
-IMAGE=$(REGISTRY)/go-gpuallocator
-endif
-IMAGE_TAG ?= $(GOLANG_VERSION)
-BUILDIMAGE ?= $(IMAGE):$(IMAGE_TAG)-devel
+DOCKERFILE_DEVEL := "images/devel/Dockerfile"
+K8S_TEST_INFRA := "https://github.com/NVIDIA/k8s-test-infra.git"
 
-TARGETS := binary build all check fmt assert-fmt generate lint vet test coverage
+TARGETS := binary build all check fmt assert-fmt generate test coverage golangci-lint
 DOCKER_TARGETS := $(patsubst %, docker-%, $(TARGETS))
 .PHONY: $(TARGETS) $(DOCKER_TARGETS)
 
@@ -35,7 +29,7 @@ build:
 	GOOS=$(GOOS) go build ./...
 
 all: check build binary
-check: assert-fmt lint vet
+check: golangci-lint
 
 # Apply go fmt to the codebase
 fmt:
@@ -57,12 +51,8 @@ assert-fmt:
 generate:
 	go generate $(MODULE)/...
 
-lint:
-	# We use `go list -f '{{.Dir}}' $(MODULE)/...` to skip the `vendor` folder.
-	go list -f '{{.Dir}}' $(MODULE)/... | grep -v pkg/nvml | xargs golint -set_exit_status
-
-vet:
-	go vet $(MODULE)/...
+golangci-lint:
+	golangci-lint -c .golangci.yml run ./...
 
 COVERAGE_FILE := coverage.out
 test: build
@@ -72,32 +62,26 @@ coverage: test
 	cat $(COVERAGE_FILE) | grep -v "_mock.go" > $(COVERAGE_FILE).no-mocks
 	go tool cover -func=$(COVERAGE_FILE).no-mocks
 
-# Generate an image for containerized builds
-# Note: This image is local only
-.PHONY: .build-image .pull-build-image .push-build-image
-.build-image: docker/Dockerfile.devel
-	if [ "$(SKIP_IMAGE_BUILD)" = "" ]; then \
-		$(DOCKER) build \
-			--progress=plain \
-			--build-arg GOLANG_VERSION="$(GOLANG_VERSION)" \
-			--tag $(BUILDIMAGE) \
-			-f $(^) \
-			docker; \
-	fi
+build-image: $(DOCKERFILE_DEVEL)
+	$(DOCKER) build \
+		--progress=plain \
+		--build-arg GOLANG_VERSION="$(GOLANG_VERSION)" \
+		--build-arg CLIENT_GEN_VERSION="$(CLIENT_GEN_VERSION)" \
+		--build-arg CONTROLLER_GEN_VERSION="$(CONTROLLER_GEN_VERSION)" \
+		--build-arg GOLANGCI_LINT_VERSION="$(GOLANGCI_LINT_VERSION)" \
+		--build-arg MOQ_VERSION="$(MOQ_VERSION)" \
+		--tag $(BUILDIMAGE) \
+		-f $(DOCKERFILE_DEVEL) \
+		.
 
-.pull-build-image:
-	$(DOCKER) pull $(BUILDIMAGE)
-
-.push-build-image:
-	$(DOCKER) push $(BUILDIMAGE)
-
-$(DOCKER_TARGETS): docker-%: .build-image
-	@echo "Running 'make $(*)' in docker container $(BUILDIMAGE)"
+$(DOCKER_TARGETS): docker-%:
+	@echo "Running 'make $(*)' in container image $(BUILDIMAGE)"
 	$(DOCKER) run \
 		--rm \
-		-e GOCACHE=/tmp/.cache \
-		-v $(PWD):$(PWD) \
-		-w $(PWD) \
+		-e GOCACHE=/tmp/.cache/go \
+		-e GOMODCACHE=/tmp/.cache/gomod \
+		-v $(PWD):/work \
+		-w /work \
 		--user $$(id -u):$$(id -g) \
 		$(BUILDIMAGE) \
 			make $(*)
@@ -108,8 +92,9 @@ PHONY: .shell
 	$(DOCKER) run \
 		--rm \
 		-ti \
-		-e GOCACHE=/tmp/.cache \
-		-v $(PWD):$(PWD) \
-		-w $(PWD) \
+		-e GOCACHE=/tmp/.cache/go \
+		-e GOMODCACHE=/tmp/.cache/gomod \
+		-v $(PWD):/work \
+		-w /work \
 		--user $$(id -u):$$(id -g) \
 		$(BUILDIMAGE)

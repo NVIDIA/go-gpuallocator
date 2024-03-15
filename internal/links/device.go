@@ -108,7 +108,7 @@ func (l P2PLinkType) String() string {
 	case EighteenNVLINKLinks:
 		return "EighteenNVLINKLinks"
 	default:
-		return fmt.Sprintf("UNKOWN (%v)", uint(l))
+		return fmt.Sprintf("UNKNOWN (%v)", uint(l))
 	}
 }
 

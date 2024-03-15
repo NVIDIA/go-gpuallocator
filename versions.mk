@@ -11,7 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-ARG GOLANG_VERSION=1.20.4
-FROM golang:${GOLANG_VERSION}
 
-RUN go install golang.org/x/lint/golint@latest
+GIT_TAG ?= $(patsubst v%,%,$(shell git describe --tags 2>/dev/null))
+GIT_COMMIT ?= $(shell git describe --match="" --dirty --long --always --abbrev=40 2> /dev/null || echo "")
+
+MODULE := github.com/NVIDIA/go-gpuallocator
+
+REGISTRY ?= nvcr.io/nvidia/cloud-native
+
+VERSION  ?= $(GIT_TAG)
+
+GOLANG_VERSION ?= 1.20.4
+
+BUILDIMAGE ?= ghcr.io/nvidia/k8s-test-infra:devel-go$(GOLANG_VERSION)

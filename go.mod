@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/NVIDIA/go-nvlib v0.0.0-20240109130712-11603560817a
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (

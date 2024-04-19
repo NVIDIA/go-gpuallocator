@@ -19,12 +19,13 @@ package gpuallocator
 import (
 	"testing"
 
-	"github.com/NVIDIA/go-nvlib/pkg/nvml"
+	"github.com/NVIDIA/go-nvml/pkg/nvml"
+	"github.com/NVIDIA/go-nvml/pkg/nvml/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceListFilter(t *testing.T) {
-	singleDeviceNVML := &nvml.InterfaceMock{
+	singleDeviceNVML := &mock.Interface{
 		InitFunc: func() nvml.Return {
 			return nvml.SUCCESS
 		},
@@ -35,7 +36,7 @@ func TestDeviceListFilter(t *testing.T) {
 			return 1, nvml.SUCCESS
 		},
 		DeviceGetHandleByIndexFunc: func(Index int) (nvml.Device, nvml.Return) {
-			device := &nvml.DeviceMock{
+			device := &mock.Device{
 				GetNameFunc: func() (string, nvml.Return) {
 					return "Device0", nvml.SUCCESS
 				},

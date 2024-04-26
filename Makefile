@@ -62,6 +62,14 @@ coverage: test
 	cat $(COVERAGE_FILE) | grep -v "_mock.go" > $(COVERAGE_FILE).no-mocks
 	go tool cover -func=$(COVERAGE_FILE).no-mocks
 
+vendor:
+	go mod tidy
+	go mod vendor
+	go mod verify
+
+check-vendor: vendor
+	git diff --quiet HEAD -- go.mod go.sum vendor
+
 build-image: $(DOCKERFILE_DEVEL)
 	$(DOCKER) build \
 		--progress=plain \

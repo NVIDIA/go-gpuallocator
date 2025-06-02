@@ -21,6 +21,6 @@ REGISTRY ?= nvcr.io/nvidia/cloud-native
 
 VERSION  ?= $(GIT_TAG)
 
-GOLANG_VERSION ?= 1.20.4
+GOLANG_VERSION ?= 1.24.3
 
 BUILDIMAGE ?= ghcr.io/nvidia/k8s-test-infra:devel-go$(GOLANG_VERSION)

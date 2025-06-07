@@ -9,6 +9,7 @@ import (
 
 	"github.com/NVIDIA/go-nvlib/pkg/nvlib/device"
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
+	"k8s.io/klog/v2"
 
 	"github.com/NVIDIA/go-gpuallocator/internal/links"
 )
@@ -90,14 +91,18 @@ func NewDevices(opts ...Option) (DeviceList, error) {
 
 // build uses the configured options to build a DeviceList.
 func (o *deviceListBuilder) build() (DeviceList, error) {
+	klog.Infof("Executing NVML Init")
 	if err := o.nvmllib.Init(); err != nvml.SUCCESS {
 		return nil, fmt.Errorf("error calling nvml.Init: %v", err)
 	}
 	defer func() {
 		_ = o.nvmllib.Shutdown()
 	}()
-
+	klog.Infof("NVML Init Finished")
+	klog.Infof("nvml lib GetDevices called")
 	nvmlDevices, err := o.devicelib.GetDevices()
+	klog.Infof("nvmlDevices fetched: %v", nvmlDevices)
+	klog.Infof("nvml lib GetDevices finished")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get devices: %v", err)
 	}
@@ -110,6 +115,8 @@ func (o *deviceListBuilder) build() (DeviceList, error) {
 		}
 		devices = append(devices, device)
 	}
+
+	klog.Infof("DeviceList : %v", devices)
 
 	for i, d1 := range nvmlDevices {
 		for j, d2 := range nvmlDevices {
@@ -132,6 +139,9 @@ func (o *deviceListBuilder) build() (DeviceList, error) {
 			}
 		}
 	}
+
+	klog.Infof("DeviceList P2P Link Probe Finished")
+	klog.Infof("Devices after P2P Link processing: %v", devices)
 
 	return devices, nil
 }

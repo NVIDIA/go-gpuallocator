@@ -92,6 +92,7 @@ func NewDevices(opts ...Option) (DeviceList, error) {
 // build uses the configured options to build a DeviceList.
 func (o *deviceListBuilder) build() (DeviceList, error) {
 	klog.Infof("Executing NVML Init")
+	klog.Infof("Print nvmllib details: %v", o.nvmllib)
 	if err := o.nvmllib.Init(); err != nvml.SUCCESS {
 		return nil, fmt.Errorf("error calling nvml.Init: %v", err)
 	}

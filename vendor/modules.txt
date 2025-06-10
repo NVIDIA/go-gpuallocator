@@ -1,7 +1,7 @@
-# github.com/NVIDIA/go-nvlib v0.5.0
+# github.com/NVIDIA/go-nvlib v0.7.2
 ## explicit; go 1.20
 github.com/NVIDIA/go-nvlib/pkg/nvlib/device
-# github.com/NVIDIA/go-nvml v0.12.0-6
+# github.com/NVIDIA/go-nvml v0.12.4-1.0.20250610021329-7a28d27a7931
 ## explicit; go 1.20
 github.com/NVIDIA/go-nvml/pkg/dl
 github.com/NVIDIA/go-nvml/pkg/nvml
@@ -18,9 +18,10 @@ github.com/google/uuid
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.9.0
+# github.com/stretchr/testify v1.10.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit

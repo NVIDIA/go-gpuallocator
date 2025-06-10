@@ -18,6 +18,7 @@ package device
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
 )
@@ -30,6 +31,8 @@ type Device interface {
 	GetCudaComputeCapabilityAsString() (string, error)
 	GetMigDevices() ([]MigDevice, error)
 	GetMigProfiles() ([]MigProfile, error)
+	GetPCIBusID() (string, error)
+	IsFabricAttached() (bool, error)
 	IsMigCapable() (bool, error)
 	IsMigEnabled() (bool, error)
 	VisitMigDevices(func(j int, m MigDevice) error) error
@@ -83,7 +86,7 @@ func (d *device) GetArchitectureAsString() (string, error) {
 	case nvml.DEVICE_ARCH_AMPERE:
 		return "Ampere", nil
 	case nvml.DEVICE_ARCH_ADA:
-		return "Ada", nil
+		return "Ada Lovelace", nil
 	case nvml.DEVICE_ARCH_HOPPER:
 		return "Hopper", nil
 	case nvml.DEVICE_ARCH_UNKNOWN:
@@ -122,7 +125,7 @@ func (d *device) GetBrandAsString() (string, error) {
 	case nvml.BRAND_NVIDIA_VWS:
 		return "NvidiaVWS", nil
 	// Deprecated in favor of nvml.BRAND_NVIDIA_CLOUD_GAMING
-	//case nvml.BRAND_NVIDIA_VGAMING:
+	// case nvml.BRAND_NVIDIA_VGAMING:
 	//	return "VGaming", nil
 	case nvml.BRAND_NVIDIA_CLOUD_GAMING:
 		return "NvidiaCloudGaming", nil
@@ -138,6 +141,29 @@ func (d *device) GetBrandAsString() (string, error) {
 		return "TitanRTX", nil
 	}
 	return "", fmt.Errorf("error interpreting device brand as string: %v", brand)
+}
+
+// GetPCIBusID returns the string representation of the bus ID.
+func (d *device) GetPCIBusID() (string, error) {
+	info, ret := d.GetPciInfo()
+	if ret != nvml.SUCCESS {
+		return "", fmt.Errorf("error getting PCI info: %w", ret)
+	}
+
+	var bytes []byte
+	for _, b := range info.BusId {
+		if byte(b) == '\x00' {
+			break
+		}
+		bytes = append(bytes, byte(b))
+	}
+	id := strings.ToLower(string(bytes))
+
+	if id != "0000" {
+		id = strings.TrimPrefix(id, "0000")
+	}
+
+	return id, nil
 }
 
 // GetCudaComputeCapabilityAsString returns the Device's CUDA compute capability as a version string.
@@ -181,6 +207,53 @@ func (d *device) IsMigEnabled() (bool, error) {
 	}
 
 	return (mode == nvml.DEVICE_MIG_ENABLE), nil
+}
+
+// IsFabricAttached checks if a device is attached to a GPU fabric.
+func (d *device) IsFabricAttached() (bool, error) {
+	if d.lib.hasSymbol("nvmlDeviceGetGpuFabricInfo") {
+		info, ret := d.GetGpuFabricInfo()
+		if ret == nvml.ERROR_NOT_SUPPORTED {
+			return false, nil
+		}
+		if ret != nvml.SUCCESS {
+			return false, fmt.Errorf("error getting GPU Fabric Info: %v", ret)
+		}
+		if info.State != nvml.GPU_FABRIC_STATE_COMPLETED {
+			return false, nil
+		}
+		if info.ClusterUuid == [16]uint8{} {
+			return false, nil
+		}
+		if nvml.Return(info.Status) != nvml.SUCCESS {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	if d.lib.hasSymbol("nvmlDeviceGetGpuFabricInfoV") {
+		info, ret := d.GetGpuFabricInfoV().V2()
+		if ret == nvml.ERROR_NOT_SUPPORTED {
+			return false, nil
+		}
+		if ret != nvml.SUCCESS {
+			return false, fmt.Errorf("error getting GPU Fabric Info: %v", ret)
+		}
+		if info.State != nvml.GPU_FABRIC_STATE_COMPLETED {
+			return false, nil
+		}
+		if info.ClusterUuid == [16]uint8{} {
+			return false, nil
+		}
+		if nvml.Return(info.Status) != nvml.SUCCESS {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // VisitMigDevices walks a top-level device and invokes a callback function for each MIG device configured on it.

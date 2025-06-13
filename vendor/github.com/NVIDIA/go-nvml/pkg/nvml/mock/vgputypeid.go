@@ -18,11 +18,17 @@ var _ nvml.VgpuTypeId = &VgpuTypeId{}
 //
 //		// make and configure a mocked nvml.VgpuTypeId
 //		mockedVgpuTypeId := &VgpuTypeId{
+//			GetBAR1InfoFunc: func() (nvml.VgpuTypeBar1Info, nvml.Return) {
+//				panic("mock out the GetBAR1Info method")
+//			},
 //			GetCapabilitiesFunc: func(vgpuCapability nvml.VgpuCapability) (bool, nvml.Return) {
 //				panic("mock out the GetCapabilities method")
 //			},
 //			GetClassFunc: func() (string, nvml.Return) {
 //				panic("mock out the GetClass method")
+//			},
+//			GetCreatablePlacementsFunc: func(device nvml.Device) (nvml.VgpuPlacementList, nvml.Return) {
+//				panic("mock out the GetCreatablePlacements method")
 //			},
 //			GetDeviceIDFunc: func() (uint64, uint64, nvml.Return) {
 //				panic("mock out the GetDeviceID method")
@@ -54,6 +60,9 @@ var _ nvml.VgpuTypeId = &VgpuTypeId{}
 //			GetResolutionFunc: func(n int) (uint32, uint32, nvml.Return) {
 //				panic("mock out the GetResolution method")
 //			},
+//			GetSupportedPlacementsFunc: func(device nvml.Device) (nvml.VgpuPlacementList, nvml.Return) {
+//				panic("mock out the GetSupportedPlacements method")
+//			},
 //		}
 //
 //		// use mockedVgpuTypeId in code that requires nvml.VgpuTypeId
@@ -61,11 +70,17 @@ var _ nvml.VgpuTypeId = &VgpuTypeId{}
 //
 //	}
 type VgpuTypeId struct {
+	// GetBAR1InfoFunc mocks the GetBAR1Info method.
+	GetBAR1InfoFunc func() (nvml.VgpuTypeBar1Info, nvml.Return)
+
 	// GetCapabilitiesFunc mocks the GetCapabilities method.
 	GetCapabilitiesFunc func(vgpuCapability nvml.VgpuCapability) (bool, nvml.Return)
 
 	// GetClassFunc mocks the GetClass method.
 	GetClassFunc func() (string, nvml.Return)
+
+	// GetCreatablePlacementsFunc mocks the GetCreatablePlacements method.
+	GetCreatablePlacementsFunc func(device nvml.Device) (nvml.VgpuPlacementList, nvml.Return)
 
 	// GetDeviceIDFunc mocks the GetDeviceID method.
 	GetDeviceIDFunc func() (uint64, uint64, nvml.Return)
@@ -97,8 +112,14 @@ type VgpuTypeId struct {
 	// GetResolutionFunc mocks the GetResolution method.
 	GetResolutionFunc func(n int) (uint32, uint32, nvml.Return)
 
+	// GetSupportedPlacementsFunc mocks the GetSupportedPlacements method.
+	GetSupportedPlacementsFunc func(device nvml.Device) (nvml.VgpuPlacementList, nvml.Return)
+
 	// calls tracks calls to the methods.
 	calls struct {
+		// GetBAR1Info holds details about calls to the GetBAR1Info method.
+		GetBAR1Info []struct {
+		}
 		// GetCapabilities holds details about calls to the GetCapabilities method.
 		GetCapabilities []struct {
 			// VgpuCapability is the vgpuCapability argument value.
@@ -106,6 +127,11 @@ type VgpuTypeId struct {
 		}
 		// GetClass holds details about calls to the GetClass method.
 		GetClass []struct {
+		}
+		// GetCreatablePlacements holds details about calls to the GetCreatablePlacements method.
+		GetCreatablePlacements []struct {
+			// Device is the device argument value.
+			Device nvml.Device
 		}
 		// GetDeviceID holds details about calls to the GetDeviceID method.
 		GetDeviceID []struct {
@@ -141,9 +167,16 @@ type VgpuTypeId struct {
 			// N is the n argument value.
 			N int
 		}
+		// GetSupportedPlacements holds details about calls to the GetSupportedPlacements method.
+		GetSupportedPlacements []struct {
+			// Device is the device argument value.
+			Device nvml.Device
+		}
 	}
+	lockGetBAR1Info             sync.RWMutex
 	lockGetCapabilities         sync.RWMutex
 	lockGetClass                sync.RWMutex
+	lockGetCreatablePlacements  sync.RWMutex
 	lockGetDeviceID             sync.RWMutex
 	lockGetFrameRateLimit       sync.RWMutex
 	lockGetFramebufferSize      sync.RWMutex
@@ -154,6 +187,34 @@ type VgpuTypeId struct {
 	lockGetName                 sync.RWMutex
 	lockGetNumDisplayHeads      sync.RWMutex
 	lockGetResolution           sync.RWMutex
+	lockGetSupportedPlacements  sync.RWMutex
+}
+
+// GetBAR1Info calls GetBAR1InfoFunc.
+func (mock *VgpuTypeId) GetBAR1Info() (nvml.VgpuTypeBar1Info, nvml.Return) {
+	if mock.GetBAR1InfoFunc == nil {
+		panic("VgpuTypeId.GetBAR1InfoFunc: method is nil but VgpuTypeId.GetBAR1Info was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockGetBAR1Info.Lock()
+	mock.calls.GetBAR1Info = append(mock.calls.GetBAR1Info, callInfo)
+	mock.lockGetBAR1Info.Unlock()
+	return mock.GetBAR1InfoFunc()
+}
+
+// GetBAR1InfoCalls gets all the calls that were made to GetBAR1Info.
+// Check the length with:
+//
+//	len(mockedVgpuTypeId.GetBAR1InfoCalls())
+func (mock *VgpuTypeId) GetBAR1InfoCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockGetBAR1Info.RLock()
+	calls = mock.calls.GetBAR1Info
+	mock.lockGetBAR1Info.RUnlock()
+	return calls
 }
 
 // GetCapabilities calls GetCapabilitiesFunc.
@@ -212,6 +273,38 @@ func (mock *VgpuTypeId) GetClassCalls() []struct {
 	mock.lockGetClass.RLock()
 	calls = mock.calls.GetClass
 	mock.lockGetClass.RUnlock()
+	return calls
+}
+
+// GetCreatablePlacements calls GetCreatablePlacementsFunc.
+func (mock *VgpuTypeId) GetCreatablePlacements(device nvml.Device) (nvml.VgpuPlacementList, nvml.Return) {
+	if mock.GetCreatablePlacementsFunc == nil {
+		panic("VgpuTypeId.GetCreatablePlacementsFunc: method is nil but VgpuTypeId.GetCreatablePlacements was just called")
+	}
+	callInfo := struct {
+		Device nvml.Device
+	}{
+		Device: device,
+	}
+	mock.lockGetCreatablePlacements.Lock()
+	mock.calls.GetCreatablePlacements = append(mock.calls.GetCreatablePlacements, callInfo)
+	mock.lockGetCreatablePlacements.Unlock()
+	return mock.GetCreatablePlacementsFunc(device)
+}
+
+// GetCreatablePlacementsCalls gets all the calls that were made to GetCreatablePlacements.
+// Check the length with:
+//
+//	len(mockedVgpuTypeId.GetCreatablePlacementsCalls())
+func (mock *VgpuTypeId) GetCreatablePlacementsCalls() []struct {
+	Device nvml.Device
+} {
+	var calls []struct {
+		Device nvml.Device
+	}
+	mock.lockGetCreatablePlacements.RLock()
+	calls = mock.calls.GetCreatablePlacements
+	mock.lockGetCreatablePlacements.RUnlock()
 	return calls
 }
 
@@ -492,5 +585,37 @@ func (mock *VgpuTypeId) GetResolutionCalls() []struct {
 	mock.lockGetResolution.RLock()
 	calls = mock.calls.GetResolution
 	mock.lockGetResolution.RUnlock()
+	return calls
+}
+
+// GetSupportedPlacements calls GetSupportedPlacementsFunc.
+func (mock *VgpuTypeId) GetSupportedPlacements(device nvml.Device) (nvml.VgpuPlacementList, nvml.Return) {
+	if mock.GetSupportedPlacementsFunc == nil {
+		panic("VgpuTypeId.GetSupportedPlacementsFunc: method is nil but VgpuTypeId.GetSupportedPlacements was just called")
+	}
+	callInfo := struct {
+		Device nvml.Device
+	}{
+		Device: device,
+	}
+	mock.lockGetSupportedPlacements.Lock()
+	mock.calls.GetSupportedPlacements = append(mock.calls.GetSupportedPlacements, callInfo)
+	mock.lockGetSupportedPlacements.Unlock()
+	return mock.GetSupportedPlacementsFunc(device)
+}
+
+// GetSupportedPlacementsCalls gets all the calls that were made to GetSupportedPlacements.
+// Check the length with:
+//
+//	len(mockedVgpuTypeId.GetSupportedPlacementsCalls())
+func (mock *VgpuTypeId) GetSupportedPlacementsCalls() []struct {
+	Device nvml.Device
+} {
+	var calls []struct {
+		Device nvml.Device
+	}
+	mock.lockGetSupportedPlacements.RLock()
+	calls = mock.calls.GetSupportedPlacements
+	mock.lockGetSupportedPlacements.RUnlock()
 	return calls
 }

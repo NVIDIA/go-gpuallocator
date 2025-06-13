@@ -407,6 +407,54 @@ func NewDGX1VoltaNode() TestNode {
 	return node
 }
 
+func New8xA10Node() TestNode {
+	node := TestNode{
+		NewTestGPU(0),
+		NewTestGPU(1),
+		NewTestGPU(2),
+		NewTestGPU(3),
+		NewTestGPU(4),
+		NewTestGPU(5),
+		NewTestGPU(6),
+		NewTestGPU(7),
+	}
+
+	// NVLinks
+	node.AddLink(0, 1, nvml.SingleNVLINKLink)
+	node.AddLink(0, 2, nvml.SingleNVLINKLink)
+	node.AddLink(0, 3, nvml.SingleNVLINKLink)
+
+	node.AddLink(1, 0, nvml.SingleNVLINKLink)
+	node.AddLink(1, 2, nvml.SingleNVLINKLink)
+	node.AddLink(1, 3, nvml.SingleNVLINKLink)
+
+	node.AddLink(2, 0, nvml.SingleNVLINKLink)
+	node.AddLink(2, 1, nvml.SingleNVLINKLink)
+	node.AddLink(2, 3, nvml.SingleNVLINKLink)
+
+	node.AddLink(3, 0, nvml.SingleNVLINKLink)
+	node.AddLink(3, 1, nvml.SingleNVLINKLink)
+	node.AddLink(3, 2, nvml.SingleNVLINKLink)
+
+	node.AddLink(4, 5, nvml.SingleNVLINKLink)
+	node.AddLink(4, 6, nvml.SingleNVLINKLink)
+	node.AddLink(4, 7, nvml.SingleNVLINKLink)
+
+	node.AddLink(5, 4, nvml.SingleNVLINKLink)
+	node.AddLink(5, 6, nvml.SingleNVLINKLink)
+	node.AddLink(5, 7, nvml.SingleNVLINKLink)
+
+	node.AddLink(6, 4, nvml.SingleNVLINKLink)
+	node.AddLink(6, 5, nvml.SingleNVLINKLink)
+	node.AddLink(6, 7, nvml.SingleNVLINKLink)
+
+	node.AddLink(7, 4, nvml.SingleNVLINKLink)
+	node.AddLink(7, 5, nvml.SingleNVLINKLink)
+	node.AddLink(7, 6, nvml.SingleNVLINKLink)
+
+	return node
+}
+
 func NewDGX2VoltaNode() TestNode {
 	return nil
 }

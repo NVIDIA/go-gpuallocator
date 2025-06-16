@@ -20,7 +20,7 @@ type GpmMetricsGetType struct {
 	NumMetrics uint32
 	Sample1    GpmSample
 	Sample2    GpmSample
-	Metrics    [98]GpmMetric
+	Metrics    [210]GpmMetric
 }
 
 func (g *GpmMetricsGetType) convert() *nvmlGpmMetricsGetType {
@@ -30,9 +30,8 @@ func (g *GpmMetricsGetType) convert() *nvmlGpmMetricsGetType {
 		Sample1:    g.Sample1.(nvmlGpmSample),
 		Sample2:    g.Sample2.(nvmlGpmSample),
 	}
-	for i := range g.Metrics {
-		out.Metrics[i] = g.Metrics[i]
-	}
+	copy(out.Metrics[:], g.Metrics[:])
+
 	return out
 }
 
@@ -43,28 +42,38 @@ func (g *nvmlGpmMetricsGetType) convert() *GpmMetricsGetType {
 		Sample1:    g.Sample1,
 		Sample2:    g.Sample2,
 	}
-	for i := range g.Metrics {
-		out.Metrics[i] = g.Metrics[i]
-	}
+	copy(out.Metrics[:], g.Metrics[:])
+
 	return out
 }
 
 // nvml.GpmMetricsGet()
 type GpmMetricsGetVType struct {
-	metricsGet *nvmlGpmMetricsGetType
+	metricsGet *GpmMetricsGetType
 }
 
 func (l *library) GpmMetricsGetV(metricsGet *GpmMetricsGetType) GpmMetricsGetVType {
-	return GpmMetricsGetVType{metricsGet.convert()}
+	return GpmMetricsGetVType{metricsGet}
 }
+
+// nvmlGpmMetricsGetStub is a stub function that can be overridden for testing.
+var nvmlGpmMetricsGetStub = nvmlGpmMetricsGet
+
 func (metricsGetV GpmMetricsGetVType) V1() Return {
 	metricsGetV.metricsGet.Version = 1
-	return nvmlGpmMetricsGet(metricsGetV.metricsGet)
+	return gpmMetricsGet(metricsGetV.metricsGet)
 }
 
 func (l *library) GpmMetricsGet(metricsGet *GpmMetricsGetType) Return {
 	metricsGet.Version = GPM_METRICS_GET_VERSION
-	return nvmlGpmMetricsGet(metricsGet.convert())
+	return gpmMetricsGet(metricsGet)
+}
+
+func gpmMetricsGet(metricsGet *GpmMetricsGetType) Return {
+	nvmlMetricsGet := metricsGet.convert()
+	ret := nvmlGpmMetricsGetStub(nvmlMetricsGet)
+	*metricsGet = *nvmlMetricsGet.convert()
+	return ret
 }
 
 // nvml.GpmSampleFree()
@@ -111,7 +120,7 @@ func (device nvmlDevice) GpmQueryDeviceSupportV() GpmSupportV {
 
 func (gpmSupportV GpmSupportV) V1() (GpmSupport, Return) {
 	var gpmSupport GpmSupport
-	gpmSupport.Version = 1
+	gpmSupport.Version = STRUCT_VERSION(gpmSupport, 1)
 	ret := nvmlGpmQueryDeviceSupport(gpmSupportV.device, &gpmSupport)
 	return gpmSupport, ret
 }
@@ -122,7 +131,7 @@ func (l *library) GpmQueryDeviceSupport(device Device) (GpmSupport, Return) {
 
 func (device nvmlDevice) GpmQueryDeviceSupport() (GpmSupport, Return) {
 	var gpmSupport GpmSupport
-	gpmSupport.Version = GPM_SUPPORT_VERSION
+	gpmSupport.Version = STRUCT_VERSION(gpmSupport, GPM_SUPPORT_VERSION)
 	ret := nvmlGpmQueryDeviceSupport(device, &gpmSupport)
 	return gpmSupport, ret
 }
@@ -138,4 +147,24 @@ func (device nvmlDevice) GpmMigSampleGet(gpuInstanceId int, gpmSample GpmSample)
 
 func (gpmSample nvmlGpmSample) MigGet(device Device, gpuInstanceId int) Return {
 	return nvmlGpmMigSampleGet(nvmlDeviceHandle(device), uint32(gpuInstanceId), gpmSample)
+}
+
+// nvml.GpmQueryIfStreamingEnabled()
+func (l *library) GpmQueryIfStreamingEnabled(device Device) (uint32, Return) {
+	return device.GpmQueryIfStreamingEnabled()
+}
+
+func (device nvmlDevice) GpmQueryIfStreamingEnabled() (uint32, Return) {
+	var state uint32
+	ret := nvmlGpmQueryIfStreamingEnabled(device, &state)
+	return state, ret
+}
+
+// nvml.GpmSetStreamingEnabled()
+func (l *library) GpmSetStreamingEnabled(device Device, state uint32) Return {
+	return device.GpmSetStreamingEnabled(state)
+}
+
+func (device nvmlDevice) GpmSetStreamingEnabled(state uint32) Return {
+	return nvmlGpmSetStreamingEnabled(device, state)
 }

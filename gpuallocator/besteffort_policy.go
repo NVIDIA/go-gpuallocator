@@ -82,11 +82,14 @@ func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, siz
 	// Find the highest scoring GPU set in the highest scoring GPU partition.
 	bestSet := filteredBestPartition[0]
 	bestScore = calculateGPUSetScore(bestSet)
+	bestLeftScore := calculateGPUSetScore(getDiffSet(available, bestSet))
 	for i := 1; i < len(filteredBestPartition); i++ {
 		score := calculateGPUSetScore(filteredBestPartition[i])
-		if score > bestScore {
+		leftScore := calculateGPUSetScore(getDiffSet(available, filteredBestPartition[i]))
+		if score > bestScore || (score == bestScore && bestLeftScore < leftScore) {
 			bestSet = filteredBestPartition[i]
 			bestScore = score
+			bestLeftScore = leftScore
 		}
 	}
 
@@ -112,6 +115,17 @@ func gpuSetContainsAll(gpuSet []*Device, gpuSubset []*Device) bool {
 		}
 	}
 	return true
+}
+
+// getDiffSet return devices that gpuSet - gpuSubset
+func getDiffSet(gpuSet []*Device, gpuSubset []*Device) []*Device {
+	var rt []*Device
+	for _, gpu := range gpuSet {
+		if !gpuSetContains(gpuSubset, gpu) {
+			rt = append(rt, gpu)
+		}
+	}
+	return rt
 }
 
 // Check to see if 'gpuPartition' has at least one set containing all 'gpuSubset' devices and no padding.

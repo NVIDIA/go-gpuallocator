@@ -32,15 +32,16 @@ type PciInfo nvml.PciInfo
 // BusID provides a utility function that returns the string representation of the bus ID.
 // Note that the []int8 slice member is named BusId.
 func (p PciInfo) BusID() string {
-	var bytes []byte
+	var pbytes []byte
 	for _, b := range p.BusId {
-		if b >= 0 && byte(b) == '\x00' {
+		// #nosec G115
+		if byte(b) == '\x00' {
 			break
 		}
 		// #nosec G115
-		bytes = append(bytes, byte(b))
+		pbytes = append(pbytes, byte(b))
 	}
-	id := strings.ToLower(string(bytes))
+	id := strings.ToLower(string(pbytes))
 
 	if id != "0000" {
 		id = strings.TrimPrefix(id, "0000")

@@ -34,9 +34,10 @@ type PciInfo nvml.PciInfo
 func (p PciInfo) BusID() string {
 	var bytes []byte
 	for _, b := range p.BusId {
-		if byte(b) == '\x00' {
+		if b >= 0 && byte(b) == '\x00' {
 			break
 		}
+		// #nosec G115
 		bytes = append(bytes, byte(b))
 	}
 	id := strings.ToLower(string(bytes))

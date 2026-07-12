@@ -1,10 +1,10 @@
 module github.com/NVIDIA/go-gpuallocator
 
-go 1.20
+go 1.25.0
 
 require (
-	github.com/NVIDIA/go-nvlib v0.10.0
-	github.com/NVIDIA/go-nvml v0.13.0-1
+	github.com/NVIDIA/go-nvlib v0.12.0
+	github.com/NVIDIA/go-nvml v0.13.3-1
 	github.com/stretchr/testify v1.11.1
 )
 

@@ -19,7 +19,7 @@ include $(CURDIR)/versions.mk
 DOCKERFILE_DEVEL := "images/devel/Dockerfile"
 K8S_TEST_INFRA := "https://github.com/NVIDIA/k8s-test-infra.git"
 
-TARGETS := binary build all check fmt assert-fmt generate test coverage golangci-lint
+TARGETS := binary build all check fmt assert-fmt generate test coverage golangci-lint third-party-notices check-third-party-notices
 DOCKER_TARGETS := $(patsubst %, docker-%, $(TARGETS))
 .PHONY: $(TARGETS) $(DOCKER_TARGETS)
 
@@ -69,6 +69,21 @@ vendor:
 
 check-vendor: vendor
 	git diff --quiet HEAD -- go.mod go.sum vendor
+
+GO_LICENSES = $(CURDIR)/bin/go-licenses
+
+$(GO_LICENSES): versions.mk
+	GOBIN=$(CURDIR)/bin GOFLAGS= go install github.com/google/go-licenses/v2@$(GO_LICENSES_VERSION)
+
+third-party-notices: $(GO_LICENSES)
+	@bash hack/generate-third-party-notices.sh
+
+check-third-party-notices: third-party-notices
+	@echo "- Checking if THIRD_PARTY_NOTICES.md is up to date..."
+	@git ls-files --error-unmatch THIRD_PARTY_NOTICES.md >/dev/null 2>&1 \
+		|| { echo "ERROR: THIRD_PARTY_NOTICES.md is not tracked. Run 'make third-party-notices' and commit the result."; exit 1; }
+	@git diff --exit-code -- THIRD_PARTY_NOTICES.md \
+		|| { echo "ERROR: THIRD_PARTY_NOTICES.md is stale. Run 'make third-party-notices' and commit the change."; exit 1; }
 
 build-image: $(DOCKERFILE_DEVEL)
 	$(DOCKER) build \

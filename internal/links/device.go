@@ -205,7 +205,7 @@ func getAllNvLinkRemotePciInfo(dev device.Device) ([]PciInfo, error) {
 	var pciInfos []PciInfo
 	for i := 0; i < nvml.NVLINK_MAX_LINKS; i++ {
 		state, ret := dev.GetNvLinkState(i)
-		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT {
+		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT || ret == nvml.ERROR_GPU_IS_LOST {
 			continue
 		}
 		if ret != nvml.SUCCESS {
@@ -215,7 +215,7 @@ func getAllNvLinkRemotePciInfo(dev device.Device) ([]PciInfo, error) {
 			continue
 		}
 		pciInfo, ret := dev.GetNvLinkRemotePciInfo(i)
-		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT {
+		if ret == nvml.ERROR_NOT_SUPPORTED || ret == nvml.ERROR_INVALID_ARGUMENT || ret == nvml.ERROR_GPU_IS_LOST {
 			continue
 		}
 		if ret != nvml.SUCCESS {

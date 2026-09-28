@@ -44,15 +44,15 @@ the `Free()` function, as seen below:
 
 ```
 func (a *Allocator) Allocate(num int) []*Device
-func (a *Allocator) AllocateSpecific(devices... *Device) []*Device
-func (a *Allocator) Free(devices... *Device)
+func (a *Allocator) AllocateSpecific(devices ...*Device) error
+func (a *Allocator) Free(devices ...*Device)
 ```
 
 The `Policy` Interface
 ----------------------
 ```
 type Policy interface {
-	Allocate(devices []*Device, num int) []*Device
+	Allocate(available []*Device, required []*Device, size int) []*Device
 }
 ```
 

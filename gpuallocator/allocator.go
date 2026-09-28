@@ -99,10 +99,22 @@ func (a *Allocator) Allocate(num int) []*Device {
 func (a *Allocator) AllocateSpecific(devices ...*Device) error {
 	// Make sure we can allocate all of the devices.
 	unavailable := []*Device{}
+	duplicates := []*Device{}
+	seen := NewDeviceSet()
 	for _, gpu := range devices {
 		if !a.remaining.Contains(gpu) {
 			unavailable = append(unavailable, gpu)
+			continue
 		}
+		if seen.Contains(gpu) {
+			duplicates = append(duplicates, gpu)
+			continue
+		}
+		seen.Insert(gpu)
+	}
+
+	if len(duplicates) != 0 {
+		return fmt.Errorf("devices '%v' are specified more than once", duplicates)
 	}
 
 	if len(unavailable) != 0 {

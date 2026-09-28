@@ -48,3 +48,14 @@ func TestAllocatorFreeIgnoresFabricatedAllocatedDevice(t *testing.T) {
 	require.Same(t, allocated[0], allocator.allocated[allocated[0].UUID])
 	require.False(t, allocator.remaining.Contains(allocated[0]))
 }
+
+func TestAllocatorAllocateSpecificRejectsDuplicateDevices(t *testing.T) {
+	allocator := newAllocatorFrom(New4xRTX8000Node().Devices(), NewSimplePolicy())
+	device := allocator.GPUs[0]
+
+	err := allocator.AllocateSpecific(device, device)
+
+	require.Error(t, err)
+	require.True(t, allocator.remaining.Contains(device))
+	require.False(t, allocator.allocated.Contains(device))
+}

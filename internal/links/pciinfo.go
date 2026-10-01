@@ -20,11 +20,16 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
 )
+
+// pciBusIDPrefixRE matches an 8-digit domain that starts with 0000.
+// A 4-digit domain such as 0000:0a:00.0 must be left as-is.
+var pciBusIDPrefixRE = regexp.MustCompile(`^0{4}[0-9a-f]{4}:`)
 
 // PciInfo is a type alias to nvml.PciInfo to allow for functions to be defined on the type.
 type PciInfo nvml.PciInfo
@@ -41,7 +46,7 @@ func (p PciInfo) BusID() string {
 	}
 	id := strings.ToLower(string(pbytes))
 
-	if id != "0000" {
+	if pciBusIDPrefixRE.MatchString(id) {
 		id = strings.TrimPrefix(id, "0000")
 	}
 	return id

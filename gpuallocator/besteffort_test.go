@@ -5,6 +5,8 @@ package gpuallocator
 import (
 	"sort"
 	"testing"
+
+	nvml "github.com/NVIDIA/go-gpuallocator/internal/links"
 )
 
 func sortGPUSetOfSets(sos [][]*Device) {
@@ -340,6 +342,37 @@ func TestBestEffortIterateGPUPartitions(t *testing.T) {
 			}
 		})
 	}
+}
+
+// The partition passed to the iterateGPUPartitions callback may be overwritten
+// by later iterations, so Allocate must copy out the best partition it retains.
+// Whether this happens depends on how append() grows the partition slice; 7
+// sets (14 GPUs) is a case where sibling partitions share memory.
+func TestBestEffortAllocateRetainsBestPartition(t *testing.T) {
+	var node TestNode
+	for i := 0; i < 14; i++ {
+		node = append(node, NewTestGPU(i))
+	}
+	for i := 0; i < 12; i += 2 {
+		node.AddLink(i, i+1, nvml.TwoNVLINKLinks)
+		node.AddLink(i+1, i, nvml.TwoNVLINKLinks)
+	}
+	node.AddLink(12, 13, nvml.FourNVLINKLinks)
+	node.AddLink(13, 12, nvml.FourNVLINKLinks)
+	devices := node.Devices()
+
+	tests := []PolicyAllocTest{
+		{
+			"Best set is in the last slot of the best partition",
+			devices,
+			[]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+			[]int{},
+			2,
+			[]int{12, 13},
+		},
+	}
+
+	RunPolicyAllocTests(t, NewBestEffortPolicy(), tests)
 }
 
 func TestBestEffort4xRTX8000GPUAllocOne(t *testing.T) {

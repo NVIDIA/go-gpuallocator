@@ -4,6 +4,7 @@ package gpuallocator
 
 import (
 	"fmt"
+	"slices"
 
 	// TODO: We rename this import to reduce the changes required below.
 	// This can be removed once the link-specifics have been migrated into go-nvlib.
@@ -61,7 +62,8 @@ func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, siz
 		}
 		score := calculateGPUPartitionScore(candidate)
 		if score > bestScore || bestPartition == nil {
-			bestPartition = candidate
+			// The candidate may be overwritten by later iterations, so copy it out.
+			bestPartition = slices.Clone(candidate)
 			bestScore = score
 		}
 	})

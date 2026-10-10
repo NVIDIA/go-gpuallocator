@@ -178,7 +178,12 @@ func (d *Device) Details() string {
 	s += fmt.Sprintf("Device %v:\n", d.Index)
 	s += fmt.Sprintf("  UUID: %v\n", d.UUID)
 	s += fmt.Sprintf("  PCI BusID: %v\n", d.PCI.BusID)
-	s += fmt.Sprintf("  SocketAffinity: %v\n", *d.CPUAffinity)
+	// CPUAffinity is nil when the PCI device reports no NUMA node.
+	socketAffinity := "none"
+	if d.CPUAffinity != nil {
+		socketAffinity = fmt.Sprintf("%v", *d.CPUAffinity)
+	}
+	s += fmt.Sprintf("  SocketAffinity: %v\n", socketAffinity)
 	s += "  Topology: \n"
 	for gpu, links := range d.Links {
 		s += fmt.Sprintf("    GPU %v Links:\n", gpu)

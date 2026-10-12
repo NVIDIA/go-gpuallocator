@@ -81,6 +81,17 @@ func TestDeviceListFilter(t *testing.T) {
 	}
 }
 
+func TestDetailsWithoutNumaNode(t *testing.T) {
+	// PciInfo.CPUAffinity is nil when the PCI device reports no NUMA node, which
+	// is what /sys says on a host without NUMA.
+	device := (*Device)(NewTestGPU(0))
+	require.Nil(t, device.CPUAffinity)
+
+	var details string
+	require.NotPanics(t, func() { details = device.Details() })
+	require.Contains(t, details, "SocketAffinity: none")
+}
+
 func setNVMLNewDuringTest(to nvml.Interface) func() {
 	original := nvmlNew
 	nvmlNew = func() nvml.Interface {

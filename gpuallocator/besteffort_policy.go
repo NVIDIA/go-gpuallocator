@@ -69,10 +69,11 @@ func (p *bestEffortPolicy) Allocate(available []*Device, required []*Device, siz
 	})
 
 	// Filter the 'bestPartition' to only include sets containing all of the
-	// 'required' devices (which may be nil so all sets will be valid).
+	// 'required' devices and no padding. A padded set does not satisfy the
+	// requested allocation size, even if it has the highest score.
 	filteredBestPartition := [][]*Device{}
 	for _, set := range bestPartition {
-		if gpuSetContainsAll(set, required) {
+		if gpuSetContainsAll(set, required) && gpuSetCountPadding(set) == 0 {
 			filteredBestPartition = append(filteredBestPartition, set)
 		}
 	}

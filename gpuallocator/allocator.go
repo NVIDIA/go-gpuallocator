@@ -45,7 +45,7 @@ func NewBestEffortAllocator() (*Allocator, error) {
 
 // NewAllocator creates a new Allocator using the given allocation policy
 func NewAllocator(policy Policy) (*Allocator, error) {
-	nvmllib := nvml.New()
+	nvmllib := nvmlNew()
 	if ret := nvmllib.Init(); ret != nvml.SUCCESS {
 		return nil, fmt.Errorf("error initializing NVML: %v", ret)
 	}
@@ -54,6 +54,8 @@ func NewAllocator(policy Policy) (*Allocator, error) {
 		WithNvmlLib(nvmllib),
 	)
 	if err != nil {
+		// No allocator exists to release this reference through its finalizer.
+		_ = nvmllib.Shutdown()
 		return nil, fmt.Errorf("error enumerating GPU devices: %v", err)
 	}
 

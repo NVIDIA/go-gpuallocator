@@ -28,7 +28,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       name: Checkout code
     - name: Get Golang version
       id: vars
@@ -36,11 +36,11 @@ jobs:
         GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
         echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
     - name: Install Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
         go-version: ${{ env.GOLANG_VERSION }}
     - name: Lint
-      uses: golangci/golangci-lint-action@v9
+      uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
       with:
         version: latest
         args: -v --timeout 5m
@@ -52,21 +52,21 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Checkout code
-          uses: actions/checkout@v6
+          uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         - name: Get Golang version
           id: vars
           run: |
             GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
             echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
         - name: Install Go
-          uses: actions/setup-go@v6
+          uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
           with:
             go-version: ${{ env.GOLANG_VERSION }}
         - run: make test
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       name: Checkout code
     - name: Get Golang version
       id: vars
@@ -74,7 +74,7 @@ jobs:
         GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
         echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
     - name: Install Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
         go-version: ${{ env.GOLANG_VERSION }}
     - run: make build
@@ -82,7 +82,7 @@ jobs:
     name: Check third-party notices
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       name: Checkout code
     - name: Get Golang version
       id: vars
@@ -90,7 +90,7 @@ jobs:
         GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
         echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
     - name: Install Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
         go-version: ${{ env.GOLANG_VERSION }}
     - run: make check-third-party-notices
